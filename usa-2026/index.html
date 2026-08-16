@@ -1,1666 +1,779 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcelona → NYC → Chicago → Seattle — Été 2026</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New York City → Chicago → Seattle — Alexia en route</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
-:root{--bg:#f8f6f2;--bg2:#f0ede8;--card:#fff;--border:#ddd9d3;--text:#1a1814;--muted:#7a746c;--subtle:#a09890;--gold:#b8860b;--gold-bg:#fdf6e3;--nyc:#2a4f8a;--bk:#7a2e1e;--chi:#1e6634;--c-act:#2a4f8a;--c-resto:#b8620b;--c-brunch:#1e7a52;--c-bar:#7a2a8a;--c-walk:#2e7a3e;--c-passby:#888;--c-match:#1e7a3e;--c-jazz:#a83060;--c-hotel:#6a4e1e;--c-alert:#a83020;--c-trans:#2a6080;--c-film:#6a2a8a;--c-concert:#5a3a8a;}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
-.cover{background:linear-gradient(135deg,#1a2540 0%,#2a1a30 50%,#1a2a20 100%);color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:60px 24px;}
-.cover-eye{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,220,120,.8);margin-bottom:20px;}
-.cover-title{font-family:'Playfair Display',serif;font-size:clamp(48px,9vw,88px);font-weight:900;line-height:.9;margin-bottom:16px;}
-.cover-amp{color:rgba(255,220,120,.7);font-weight:400;font-size:.5em;display:block;margin:8px 0;}
-.cover-sub{font-size:16px;color:rgba(255,255,255,.5);margin-bottom:48px;}
-.cover-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;}
-.stat-n{font-family:'Playfair Display',serif;font-size:32px;color:rgba(255,220,120,.9);display:block;}
-.stat-l{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;}
-.cover-route{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.4);flex-wrap:wrap;justify-content:center;}
-.route-c{color:rgba(255,255,255,.8);font-weight:500;}
-.route-a{color:rgba(255,220,120,.6);}
-.rstop{display:inline-flex;flex-direction:column;align-items:center;gap:2px;}
-.rstop-d{font-size:10px;color:rgba(255,220,120,.6);white-space:nowrap;}
-.nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:200;display:flex;overflow-x:auto;box-shadow:0 1px 8px rgba(0,0,0,.06);scrollbar-width:none;}
-.nav::-webkit-scrollbar{display:none;}
-.nav a{padding:14px 18px;text-decoration:none;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
-.nav a:hover{color:var(--text);}
-.nav a.nyc{border-color:var(--nyc);color:var(--nyc);}
-.nav a.bk{border-color:var(--bk);color:var(--bk);}
-.nav a.chi{border-color:var(--chi);color:var(--chi);}
-.nav a.sea{border-color:#2e6e4e;color:#2e6e4e;}
-.wrap{padding:56px 24px;}
-.wrap.alt{background:var(--bg2);}
-.inner{max-width:1160px;margin:0 auto;}
-.two-col{display:grid;grid-template-columns:1fr 400px;gap:32px;align-items:start;}
-.map-stick{position:sticky;top:73px;}
-.sec-head{margin-bottom:36px;padding-bottom:20px;border-bottom:2px solid var(--border);}
-.sec-eye{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.2em;margin-bottom:6px;font-weight:600;}
-.sec-title{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);font-weight:700;color:var(--text);}
-.sec-meta{font-size:12px;color:var(--muted);margin-top:4px;}
-.hotels{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:32px;}
-.hc{background:var(--gold-bg);border:1px solid #e8d88a;border-radius:10px;padding:16px;}
-.hc-l{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin-bottom:8px;}
-.hc-n{font-family:'Playfair Display',serif;font-size:16px;color:var(--text);margin-bottom:3px;}
-.hc-a{font-size:11px;color:var(--muted);margin-bottom:7px;}
-.hc-d{display:inline-block;font-size:11px;color:var(--gold);background:rgba(184,134,11,.12);padding:2px 10px;border-radius:20px;font-weight:600;}
-.hc-note{font-size:11px;color:var(--subtle);margin-top:6px;}
-.t-box{background:#f0f5ff;border:1px solid #c0d0f0;border-radius:10px;padding:16px 18px;margin-bottom:28px;}
-.t-title{font-size:10px;color:var(--c-trans);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:10px;}
-.t-step{display:flex;gap:12px;padding:4px 0;font-size:12px;color:#3a5a7a;border-bottom:1px solid #dce8f8;}
-.t-step:last-child{border:none;}
-.t-time{color:var(--c-trans);font-weight:700;min-width:48px;flex-shrink:0;}
-.day{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);}
-.day-head{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--bg);}
-.day-date{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.15em;font-weight:700;margin-bottom:3px;}
-.day-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text);}
-.day-km{font-size:11px;color:var(--subtle);margin-top:3px;}
-.day-badge{font-size:10px;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;font-weight:600;}
-.b-match{background:#e8f5e8;color:#1a6a2a;border:1px solid #b8ddb8;}
-.b-car{background:#fff5e0;color:#8a5a00;border:1px solid #e0c870;}
-.b-flight{background:#e8f0ff;color:#2a4a8a;border:1px solid #b0c8f0;}
-.b-checkin{background:#e8f8f0;color:#1a6a44;border:1px solid #b0ddc8;}
-.b-film{background:#f5e8ff;color:#5a2a7a;border:1px solid #d0b0e8;}
-.b-concert{background:#f5e8ff;color:#5a2a8a;border:1px solid #d0b0e8;}
-.day-body{padding:12px 20px 16px;}
-.item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0ece8;}
-.item:last-child{border:none;}
-.i-time{font-size:11px;color:var(--gold);font-weight:700;white-space:nowrap;min-width:46px;margin-top:2px;}
-.i-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.i-body{flex:1;min-width:0;}
-.i-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:2px;}
-.i-desc{font-size:11px;color:var(--muted);line-height:1.5;}
-.i-dur{font-size:10px;color:var(--subtle);margin-top:2px;font-style:italic;}
-.i-km{font-size:11px;color:var(--subtle);white-space:nowrap;min-width:52px;text-align:right;margin-top:2px;flex-shrink:0;font-weight:600;}
-.tag{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600;white-space:nowrap;}
-.ta{background:#e8eeff;color:var(--c-act);}
-.tr{background:#fff3e0;color:var(--c-resto);}
-.tb{background:#f3e8ff;color:var(--c-bar);}
-.tbr{background:#e8f5ee;color:var(--c-brunch);}
-.tw{background:#eaf5ea;color:var(--c-walk);}
-.tp{background:#f0eeec;color:var(--c-passby);}
-.tm{background:#e8f5e8;color:var(--c-match);}
-.tj{background:#ffe8f0;color:var(--c-jazz);}
-.tth{background:#fff8e0;color:var(--c-hotel);}
-.tal{background:#ffe8e0;color:var(--c-alert);}
-.ttt{background:#e8f0ff;color:var(--c-trans);}
-.tfi{background:#f5e8ff;color:var(--c-film);}
-.tco{background:#f3e8ff;color:var(--c-concert);}
-.tun{background:#fff5e0;color:#8a6000;}
-.tfr{background:#eaf5ea;color:#1a6a2a;}
-.tres{background:#ffe8d8;color:#7a3800;}
-.tok{background:#d8f0dd;color:#136b2e;font-weight:600;}
-.opts{margin:6px 0 2px;}
-.opts-lbl{font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
-.opt{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--muted);padding:2px 0;}
-.opt-l{font-size:9px;background:var(--bg3);color:var(--gold);width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;margin-top:1px;}
-.alert-box{background:#fff5f5;border:1px solid #f0c8c8;border-radius:10px;padding:16px 18px;margin-bottom:16px;}
-.alert-box.chi{background:#fff8e8;border-color:#f0dfa0;}
-.alert-title{font-size:10px;color:#a82020;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:10px;}
-.alert-box.chi .alert-title{color:#8a6000;}
-.alert-item{font-size:12px;color:#7a3030;padding:3px 0;display:flex;gap:8px;}
-.alert-box.chi .alert-item{color:#7a5000;}
-.map-box{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);}
-.map-title{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);background:var(--bg);}
-#map-nyc,#map-bk,#map-chi,#map-sea{height:460px;width:100%;}
-.item.hl,.ws.hl{animation:hl 1.6s ease;}
-@keyframes hl{0%,25%{box-shadow:inset 0 0 0 999px rgba(255,205,70,.4);}100%{box-shadow:inset 0 0 0 999px rgba(255,205,70,0);}}
-.pindot.pulse{animation:pulse 1s ease 2;}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.55);}70%{box-shadow:0 0 0 15px rgba(192,57,43,0);}100%{box-shadow:0 0 0 0 rgba(192,57,43,0);}}
-.map-legend{padding:12px 16px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;background:var(--bg);}
-.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:500;}
-.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:10px 0;}
-.ws{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;gap:8px;}
-.ws-n{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);font-weight:700;min-width:22px;line-height:1.1;}
-.ws-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:1px;}
-.ws-desc{font-size:10px;color:var(--muted);}
-.ws-type{font-size:10px;color:var(--subtle);margin-top:2px;}
-.ws-int{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px;}
-.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
-.rc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.rc-day{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px;}
-.rc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;}
-.rc-items{font-size:11px;color:var(--muted);line-height:1.8;}
-.divider{border:none;border-top:2px solid var(--border);}
-footer{text-align:center;padding:40px 24px;background:var(--bg2);border-top:1px solid var(--border);font-size:12px;color:var(--subtle);letter-spacing:.05em;}
-.leaflet-popup-content-wrapper{background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);color:var(--text);font-family:'Inter',sans-serif;}
-.leaflet-popup-tip{background:#fff;}
-.leaflet-popup-content{margin:12px 14px;font-size:12px;}
-.pop-name{font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px;}
-.pop-tag{font-size:10px;padding:2px 8px;border-radius:8px;display:inline-block;margin-bottom:6px;font-weight:600;}
-.pop-desc{color:var(--muted);font-size:11px;margin-bottom:4px;}
-.pop-addr{color:var(--subtle);font-size:10px;}
-@media(max-width:940px){.two-col{grid-template-columns:1fr;}.map-stick{position:static;}}
-@media(max-width:600px){.wrap{padding:32px 14px;}.wgrid{grid-template-columns:1fr 1fr;}.day-head{flex-direction:column;}}
-@media print{.nav,.map-stick,#langsel{display:none;}.two-col{grid-template-columns:1fr;}.day{break-inside:avoid;}.cover{min-height:auto;page-break-after:always;}}
-#langsel{display:inline-flex;gap:3px;margin-left:auto;align-self:center;margin-right:14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:3px;flex-shrink:0;}
-#langsel button{font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;border-radius:14px;padding:4px 9px;cursor:pointer;letter-spacing:.05em;transition:all .15s;}
-#langsel button.on{background:var(--gold);color:#fff;}
+  body{margin:0;background:#f4f1ea;}
+  .bk, .bk *{box-sizing:border-box;}
+  a{color:#1a1a18;text-decoration:none;}
+  a:hover{color:#8a4b3a;}
+  .leaflet-container{background:#e6e2d8;font-family:Archivo,sans-serif;}
+  .leaflet-tile-pane{filter:grayscale(1) contrast(1.05);}   /* B&W basemap only — markers & routes stay in colour */
+  #screen .leg:hover{color:#1a1a18;}
+  .bk{display:none;}
+
+  /* Responsive: collapse the two-column grids on narrow screens */
+  @media (max-width:860px){
+    .cover-grid{grid-template-columns:1fr !important;}
+    .cover-grid > div:last-child{border-left:none !important;border-top:1px solid #1a1a18;min-height:280px !important;}
+    .lodging-grid,.day-grid{grid-template-columns:1fr !important;gap:26px !important;}
+  }
+
+  @media print{
+    @page{margin:0;}
+    html,body{background:#fff;}
+    .screen{display:none !important;}
+    .bk{display:block;font-family:Newsreader,Georgia,serif;color:#1a1a18;}
+    .pg{position:relative;overflow:hidden;break-after:page;page-break-after:always;background:#fff;}
+    .bk.b5 .pg{width:176mm;height:250mm;padding:17mm 15mm 14mm;font-size:9pt;line-height:1.45;}
+    .bk.pp .pg{width:88mm;height:125mm;padding:9mm 8mm 8mm;font-size:6.6pt;line-height:1.38;}
+    .bk .lbl{font-family:Archivo,sans-serif;text-transform:uppercase;}
+    .bk.pp .hero{height:38mm;}
+    .bk.b5 .hero{height:78mm;}
+    .bk.pp .mapbox{height:44mm;}
+    .bk.b5 .mapbox{height:92mm;}
+    .bk.pp .cvimg{height:52mm;}
+    .bk.b5 .cvimg{height:108mm;}
+    img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .pg *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
 </style>
 </head>
 <body>
+<div class="screen" id="screen" style="background:#f4f1ea;color:#1a1a18;font-family:Archivo,Helvetica,Arial,sans-serif;"></div>
+<div class="bk b5" id="bk"></div>
 
-<div class="cover">
-  <div class="cover-eye">Guide de voyage personnel · Été 2026</div>
-  <div class="cover-title">Trip USA</div>
-  <div class="cover-sub">27 juin — 14 juillet 2026 · Alexia &amp; Ricardo</div>
-  <div class="cover-route" style="margin:6px 0 40px;">
-    <span class="rstop"><span class="route-c">Barcelona</span><span class="rstop-d">27 juin</span></span>
-    <span class="route-a">→</span>
-    <span class="rstop"><span class="route-c">NYC/Brooklyn</span><span class="rstop-d">27 juin – 3 juil</span></span>
-    <span class="route-a">→</span>
-    <span class="rstop"><span class="route-c">Chicago</span><span class="rstop-d">3 – 9 juil</span></span>
-    <span class="route-a">→</span>
-    <span class="rstop"><span class="route-c">Seattle</span><span class="rstop-d">9 – 13 juil</span></span>
-    <span class="route-a">→</span>
-    <span class="rstop"><span class="route-c">Barcelona</span><span class="rstop-d">14 juil</span></span>
-  </div>
-  <div class="cover-stats">
-    <div><span class="stat-n">16</span><span class="stat-l">Nuits</span></div>
-    <div><span class="stat-n">4</span><span class="stat-l">Villes</span></div>
-    <div><span class="stat-n">~65</span><span class="stat-l">km à pied</span></div>
-    <div><span class="stat-n">🇦🇷</span><span class="stat-l">Argentina WC</span></div>
-  </div>
-</div>
+<script type="module">
+import { UI, TRIP, RESTO_SETS, DAYS, DAY_COLORS } from './usa-data.js';
 
-<nav class="nav">
-  <a href="#nyc" class="nyc">🗽 NYC</a>
-  <a href="#bk" class="bk">🌉 Brooklyn</a>
-  <a href="#chi" class="chi">🌆 Chicago</a>
-  <a href="#sea" class="sea">🌲 Seattle</a>
-  <a href="#resa">⚠️ Réservations</a>
-  <a href="#restos">🍽️ Restos</a>
-  <span id="langsel"><button type="button" data-l="fr">FR</button><button type="button" data-l="en">EN</button><button type="button" data-l="es">ES</button></span>
-</nav>
+const state = { lang: 'fr', day: 0, fmt: 'b5', imgs: {}, hero: null, map: null, city: 'ny', mapCity: 'ny' };
 
-<!-- NYC -->
-<div id="nyc">
-<div class="wrap">
-<div class="inner">
-<div class="two-col">
-<div>
-
-<div class="sec-head">
-  <div class="sec-eye">27 juin → 1 juillet · 4 nuits · ~23 km totaux</div>
-  <div class="sec-title">🗽 New York City</div>
-  <div class="sec-meta">Chelsea · Interfaith 21 · 246 W 21st St</div>
-</div>
-
-<div class="hotels">
-  <div class="hc">
-    <div class="hc-l">🏨 Hôtel Chelsea</div>
-    <div class="hc-n">Interfaith 21</div>
-    <div class="hc-a">246 W 21st St, Chelsea, NY 10011</div>
-    <div class="hc-d">27 juin → 1 juillet</div>
-    <div class="hc-note">B&amp;B boutique · ⭐ 4.9/5 · Petit-déj inclus</div>
-  </div>
-</div>
-
-<div class="t-box">
-  <div class="t-title">✈️ Arrivée Sam 27 juin · BCN 12h00 → EWR 14h45</div>
-  <div class="t-step"><span class="t-time">14h45</span>Atterrissage Newark · Bagages (~30 min)</div>
-  <div class="t-step"><span class="t-time">~15h15</span>Suivre "AirTrain / Trains to New York" → Airport Train Station</div>
-  <div class="t-step"><span class="t-time">~15h25</span>Ticket NJ Transit ~$17 (AirTrain inclus) · App NJ Transit</div>
-  <div class="t-step"><span class="t-time">~15h30</span>NJ Transit → New York Penn Station</div>
-  <div class="t-step"><span class="t-time">~15h55</span>Penn Station → Subway C ou E → 23rd St · 5 min à pied</div>
-  <div class="t-step"><span class="t-time">~16h15</span>🏨 Check-in Interfaith 21</div>
-  <div class="t-step"><span class="t-time">⚠️</span>OMNY uniquement (carte contactless / Apple Pay)</div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Samedi 27 juin</div>
-      <div class="day-title">Arrivée · High Line → Hudson Yards · Vessel · Times Square · Match 🇦🇷</div>
-      <div class="day-km">~4.5 km · soirée complète</div>
-    </div>
-    <span class="day-badge b-match">🇦🇷 Argentine 22h</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">~16h15</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🏨 Check-in Interfaith 21 <span class="tag tth">Hôtel</span></div><div class="i-desc">246 W 21st St · Poser bagages</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~17h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌿 High Line → Hudson Yards <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Entrée Gansevoort St · Parc suspendu · Vue Hudson · 2.3 km jusqu'à l'extrémité nord · débouche directement sur Hudson Yards</div><div class="i-dur">⏱ 45 min–1h · 2.3 km bout en bout</div></div>
-      <span class="i-km">2.3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">🛒 Chelsea Market <span class="tag tbr">Snack</span></div><div class="i-desc">75 9th Ave · Food hall · dîner léger d'arrivée · sortie High Line à 16th St</div><div class="i-dur">⏱ 30 min</div><div class="opts"><div class="opts-lbl">Options</div><div class="opt"><span class="opt-l">A</span>Suprema Provisions · burger · $15–20</div><div class="opt"><span class="opt-l">B</span>Tacombi · tacos · $15–20 ✅</div><div class="opt"><span class="opt-l">C</span>Luke's Lobster · seafood · $20–25</div></div></div>
-      <span class="i-km">0.2 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h30</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🖼️ Whitney Museum <span class="tag ta">Musée</span></div><div class="i-desc">99 Gansevoort St · $30/pp · 🕙 ouvert jusqu'à 22h le samedi · à côté de Chelsea Market · Whitney Biennial 2026</div><div class="i-dur">⏱ ~1h · Terrasse 8e étage vue Hudson</div></div>
-      <span class="i-km">0.3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~20h</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🐝 Hudson Yards + Vessel <span class="tag ta">Activité</span><span class="tag tfr">Gratuit</span><span class="tag tw">3 stops</span></div><div class="i-desc">Extrémité nord High Line · complexe ultra-moderne au bord de l'Hudson · taxi depuis Whitney ~10 min</div><div class="i-dur">⏱ ~45 min</div></div>
-      <span class="i-km">taxi</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🐝 Vessel ⭐</div><div class="ws-int">⭐ Sculpture-escalier en nid d'abeille de Thomas Heatherwick · 154 escaliers interconnectés · 80 paliers · 2 500 marches · vue panoramique sur Manhattan et le New Jersey · gratuit · accès depuis la High Line</div><div class="ws-type">Hudson Yards Plaza · accès gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🎨 The Shed</div><div class="ws-int">Centre culturel innovant avec une coque extérieure rétractable en acier et ETFE · expositions d'art contemporain · architecture impressionnante · juste à côté du Vessel</div><div class="ws-type">545 W 30th St · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🌆 Hudson Yards Plaza</div><div class="ws-int">Esplanade publique avec vue directe sur l'Hudson River · écrans géants et terrasses · ambiance soirée · idéal pour regarder le match en plein air si des retransmissions sont organisées</div><div class="ws-type">Option match en plein air · ~22h</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~21h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌃 Times Square — Pré-match <span class="tag ta">Activité</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">1.5 km à pied depuis Hudson Yards (ou taxi 5 min) · néons · Broadway · écrans géants allumés pour le match · ambiance électrique avant le coup d'envoi</div><div class="i-dur">⏱ ~45 min · photos · se positionner pour 22h</div></div>
-      <span class="i-km">1.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">22h00</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">🇦🇷 Argentine vs Jordan <span class="tag tm">Match ⚽</span></div><div class="opts"><div class="opts-lbl">Où regarder</div><div class="opt"><span class="opt-l">A</span>Times Square · Écrans géants Broadway · FOX Sports · ambiance 100 000 personnes ✅</div><div class="opt"><span class="opt-l">B</span>Hudson Yards Plaza · retransmission plein air · moins de monde · vue sur l'Hudson</div></div><div class="i-dur">⏱ ~2h · Ambiance incroyable</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Dimanche 28 juin</div>
-      <div class="day-title">Flatiron · Greenwich Village · West Village → SoHo → Lower Manhattan → Dimes Square</div>
-      <div class="day-km">~8.5 km · ~8h activités</div>
-    </div>
-    <span class="day-badge b-car" style="background:#e8f5e8;color:#1a6a2a;border-color:#b8ddb8;">🚶 ~8.5 km</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">~8h30</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🥐 Petit-déjeuner inclus <span class="tag tth">Interfaith 21</span></div><div class="i-desc">246 W 21st St · B&amp;B · compris dans la nuitée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~9h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🏢 Flatiron District <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span><span class="tag tw">2 stops</span></div><div class="i-desc">0.8 km depuis l'hôtel · ⏱ 45 min</div></div>
-      <span class="i-km">0.8 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🏢 Flatiron Building ⭐</div><div class="ws-int">⭐ Gratte-ciel triangulaire de 22 étages (1902) · l'un des premiers de NYC · intersection iconique de Broadway & 5th Ave · meilleure photo depuis le croisement au sud sur 23rd St · façade néo-Renaissance</div><div class="ws-type">175 5th Ave · ~15 min</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🌳 Madison Square Park</div><div class="ws-int">Jardin public verdoyant entre 23rd et 26th St · fontaine · sculptures temporaires · vue directe sur le Flatiron · Shake Shack original depuis 2004 (longue queue mais vaut le coup)</div><div class="ws-type">11 Madison Ave · ~20 min</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~10h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌿 Greenwich Village <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span><span class="tag tw">3 stops</span></div><div class="i-desc">1.2 km depuis Flatiron · ⏱ 45 min</div></div>
-      <span class="i-km">1.2 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🌉 Washington Square Arch ⭐</div><div class="ws-int">⭐ Arche triomphale en marbre blanc (1892) · réplique inspirée de l'Arc de Triomphe · portail emblématique de Manhattan · fontaine centrale · musiciens de rue · étudiants NYU · soul du Village</div><div class="ws-type">Washington Square North · ~15 min</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🏡 Washington Mews</div><div class="ws-int">Ruelle pavée privée du XIXe siècle · anciennes écuries transformées en résidences bohèmes · l'une des rues les plus photogéniques de NYC · juste au nord du parc · architecture unique</div><div class="ws-type">Washington Mews · Pass by · ~10 min</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">♟️ Chess Tables du Parc</div><div class="ws-int">Les légendaires joueurs d'échecs de Washington Square · tradition depuis des décennies · coin le plus new-yorkais du parc · parties intenses à toute heure · atmosphère électrique</div><div class="ws-type">Southwest corner · ~10 min</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~11h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🏘️ West Village <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span><span class="tag tw">3 stops</span></div><div class="i-desc">0.8 km depuis Washington Square · ⏱ 45 min</div></div>
-      <span class="i-km">0.8 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🎵 Bleecker Street</div><div class="ws-int">L'artère musicale historique du Village · Dylan, Hendrix, le folk américain y ont germé dans les années 60 · boutiques indépendantes · Magnolia Bakery (cupcakes) · ambiance quartier bohème</div><div class="ws-type">Bleecker St · ~15 min</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🏠 Perry Street ⭐</div><div class="ws-int">⭐ 64 Perry St = la maison de Carrie Bradshaw (Sex and the City) · l'une des rues de brownstones les plus charmantes de NYC · architecture du XIXe siècle · calme et hors du temps</div><div class="ws-type">64 Perry St · ~10 min</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🎷 Commerce Street</div><div class="ws-int">Ruelle pavée romantique parmi les plus belles du Village · Village Vanguard tout proche (jazz club légendaire depuis 1935) · Cherry Lane Theatre (plus vieux Off-Broadway) · brownstones parfaits</div><div class="ws-type">Commerce St · ~10 min</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~12h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 West Village → SoHo <span class="tag tw">Balade</span></div><div class="i-desc">Via Hudson St ou 6th Ave · retour vers SoHo</div><div class="i-dur">⏱ 15 min · ~1 km</div></div>
-      <span class="i-km">1 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~13h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Déjeuner SoHo <span class="tag tr">Déjeuner</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Shuka ⭐⭐⭐ · 38 MacDougal St · Méditerranéen · $35–50 ✅</div><div class="opt"><span class="opt-l">B</span>Tomiño Taberna · Nolita · Tapas gallegas · $30–45 ✅</div><div class="opt"><span class="opt-l">C</span>La Mercerie · 53 Howard St · Français romantique · $40–55 ✅</div><div class="opt"><span class="opt-l">D</span>Tacombi · 267 Elizabeth St · Nolita · tacos · $15 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">★</span><div><div class="ws-name">🏗️ SoHo — Key Highlights</div><div class="ws-int">Plus grande concentration de bâtiments en fonte du monde (cast iron architecture XIXe) · Prince St & Spring St · boutiques de créateurs sur Broadway · galeries d'art · l'un des quartiers les plus photogéniques de NYC</div><div class="ws-type">South of Houston · entre 6th Ave et Broadway</div></div></div>
-      <div class="ws"><span class="ws-n">★</span><div><div class="ws-name">🏙️ NoHo — Key Highlights</div><div class="ws-int">North of Houston · Bond St & Great Jones St · quartier bohème et artistique · lofts de fonte · boutiques indépendantes · à deux pas de SoHo et Nolita · ambiance downtown authentique</div><div class="ws-type">North of Houston · entre Broadway et Bowery</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 SoHo → NoHo → Nolita → Little Italy → Chinatown <span class="tag tw">Balade</span><span class="tag tw">4 quartiers</span></div><div class="i-desc">Spring St · Elizabeth St · Mott St → Canal St</div><div class="i-dur">⏱ 45 min · 1.5 km</div></div>
-      <span class="i-km">1.5 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🏙️ NoHo</div><div class="ws-int">Bond St · Great Jones St · Lafayette St · lofts industriels en fonte · boutiques pointues · architecture cast iron identique à SoHo · quartier discret et authentique</div><div class="ws-type">~15h · Bond St & Broadway</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🌸 Nolita</div><div class="ws-int">Elizabeth St · Mott St · Prince St · le quartier le plus cool de Downtown · boutiques vintage · coffee shops · galeries émergentes · terrasses animées · ambiance bobo authentique</div><div class="ws-type">~15h10 · Elizabeth St</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🇮🇹 Little Italy</div><div class="ws-int">Mulberry St · boulangeries et cafés italiens · Caffe Ferrara (1892) · Feast of San Gennaro chaque septembre · quartier réduit mais ambiance italienne préservée</div><div class="ws-type">~15h20 · Mulberry St</div></div></div>
-      <div class="ws"><span class="ws-n">4</span><div><div class="ws-name">🏮 Chinatown</div><div class="ws-int">Plus grand Chinatown des USA · Canal St · Mott St · stands de street food · poissonneries · marchés ouverts · temples · pharmacies traditionnelles · une autre ville dans la ville</div><div class="ws-type">~15h30 · Canal St</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🥟 Nom Wah Tea Parlor 🏛️ <span class="tag tr">Dim sum</span></div><div class="i-desc">13 Doyers St · Chinatown · plus vieux dim sum de NYC (1920) · pile sur la balade</div><div class="i-dur">⏱ ~30 min · $20–25</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~16h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Lower Manhattan Loop <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span><span class="tag tw">9 stops · ~1h30</span></div><div class="i-desc">Financial District · boucle complète depuis Chinatown</div></div>
-      <span class="i-km">~2 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🕯️ 9/11 Memorial ⭐</div><div class="ws-int">⭐ Incontournable · Deux bassins commémoratifs dans les empreintes des tours · noms des victimes gravés en bronze · jardin de chênes · sobre et émouvant</div><div class="ws-type">180 Greenwich St · ~20 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🦅 Oculus — WTC</div><div class="ws-int">Hub de transport en forme d'ailes dessiné par Santiago Calatrava · l'un des bâtiments les plus chers jamais construits · intérieur blanc spectaculaire · gratuit</div><div class="ws-type">185 Greenwich St · Pass by · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">⛪ St. Paul's Chapel 🏛️</div><div class="ws-int">Plus vieille église de Manhattan encore debout (1766) · a survécu intact le 11 septembre · George Washington y pria le jour de son investiture en 1789 · exposition émouvante sur 9/11</div><div class="ws-type">209 Broadway · 10 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">4</span><div><div class="ws-name">⚖️ Federal Hall 🏛️</div><div class="ws-int">Site du 1er Congrès américain (1789) · George Washington y prêta serment comme 1er Président · statue de Washington devant · architecture néoclassique grecque · entrée gratuite</div><div class="ws-type">26 Wall St · 10 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">5</span><div><div class="ws-name">🏦 New York Stock Exchange</div><div class="ws-int">Façade néoclassique 1903 · colonnes corinthiennes monumentales · drapeaux américains immenses · cœur financier mondial · impossible d'entrer mais façade impressionnante</div><div class="ws-type">11 Wall St · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">6</span><div><div class="ws-name">🐂 Charging Bull + Fearless Girl</div><div class="ws-int">Taureau en bronze de 3 tonnes (1989) · symbole de Wall Street · toucher les cornes porte-bonheur · Fearless Girl lui fait face depuis 2017 · photos incontournables</div><div class="ws-type">Broadway & Morris St · 10 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">7</span><div><div class="ws-name">⛪ Trinity Church 🏛️</div><div class="ws-int">Église néo-gothique 1846 · cimetière historique avec la tombe d'Alexander Hamilton · l'une des premières grandes architectures gothiques d'Amérique · au bout de Wall Street</div><div class="ws-type">75 Broadway · 10 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">8</span><div><div class="ws-name">🌿 Battery Park</div><div class="ws-int">Parc au bout de Manhattan · vue sur New York Harbor et la Statue de la Liberté · Castle Clinton (fort historique) · le ferry pour Liberty Island part d'ici · bancs pour souffler</div><div class="ws-type">State St · 15 min · Gratuit</div></div></div>
-      <div class="ws"><span class="ws-n">9</span><div><div class="ws-name">🍕 Fin du tour → LES</div><div class="ws-int">Remonter via Broadway → Chambers St · métro ou 20 min à pied jusqu'au Lower East Side · direction Scarr's Pizza ou Dimes Square</div><div class="ws-type">~17h30 · Fin de boucle</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🥪 LES — sur le pouce <span class="tag tr">Snack</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Scarr's Pizza 🏛️ · 22 Orchard St · pizza culte · $10</div><div class="opt"><span class="opt-l">B</span>Katz's Delicatessen 🏛️ · 205 E Houston St · pastrami depuis 1888 · $25–30</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">20h00</span><div class="i-dot" style="background:var(--c-jazz)"></div>
-      <div class="i-body"><div class="i-name">🎷 Smoke Jazz &amp; Supper Club <span class="tag tj">Jazz</span><span class="tag tok">✅ Réservation faite</span></div><div class="i-desc">2751 Broadway, UWS · Dîner inclus · ~$100+/pp · ⚠️ taxi depuis le centre</div><div class="i-dur">⏱ ~1h30 · Fin ~21h30</div></div>
-      <span class="i-km">taxi</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🍷 Dimes Square — Vin naturel <span class="tag tb">LES</span></div><div class="i-desc">Division St / Orchard St · ~1 km depuis Wall St</div><div class="opts"><div class="opt"><span class="opt-l">A</span>Parcelle · 135 Division St · vin naturel · $30–50 ✅</div><div class="opt"><span class="opt-l">B</span>Wildair · 142 Orchard St · vins · tapas · $30–50 ✅</div></div></div>
-      <span class="i-km">1 km</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Lundi 29 juin</div>
-      <div class="day-title">UES · Met · Guggenheim · AMNH · Central Park · MoMA · Rockefeller · Grand Central</div>
-      <div class="day-km">~8 km · Grande journée Uptown → Midtown</div>
-    </div>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🥐 Petit-déjeuner inclus <span class="tag tth">Interfaith 21</span></div><div class="i-desc">246 W 21st St · B&amp;B · compris dans la nuitée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~9h30</span><div class="i-dot" style="background:var(--c-passby)"></div>
-      <div class="i-body"><div class="i-name">🏛️ The Metropolitan Museum <span class="tag tp">Pass by</span></div><div class="i-desc">1000 5th Ave · Façade néoclassique monumentale</div><div class="i-dur">⏱ ~5 km depuis l'hôtel · Métro recommandé · Museum Mile</div></div>
-      <span class="i-km">~5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~9h45</span><div class="i-dot" style="background:var(--c-passby)"></div>
-      <div class="i-body"><div class="i-name">🌀 Guggenheim Museum <span class="tag tp">Pass by</span></div><div class="i-desc">1071 5th Ave · Architecture spirale FLW</div><div class="i-dur">⏱ 5 min · 0.3 km</div></div>
-      <span class="i-km">0.3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~10h</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🏘️ Upper East Side <span class="tag ta">Stop 30 min</span></div><div class="i-desc">Museum Mile · Brownstones · Madison Ave</div><div class="i-dur">⏱ 30 min</div></div>
-      <span class="i-km">0.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">10h30</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🦕 AMNH <span class="tag ta">Musée</span><span class="tag tok">✅ Réservation faite</span></div><div class="i-desc">200 Central Park W · ~$28/pp · Dinosaures · Planétarium · 🕙 10h–17h30</div><div class="i-dur">⏱ 2h · 1 km depuis UES</div></div>
-      <span class="i-km">1 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~12h45</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">☕ Pause café — Levain Bakery 🏛️ <span class="tag tbr">Café</span></div><div class="i-desc">167 W 74th St, UWS · Cookies légendaires · juste à côté d'AMNH</div><div class="i-dur">⏱ Optionnel · après le musée</div></div>
-      <span class="i-km">0.4 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~13h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌳 Central Park <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Bethesda Fountain · Bow Bridge · The Ramble</div><div class="i-dur">⏱ 45 min · ~2 km</div></div>
-      <span class="i-km">2 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Balade 5th Avenue <span class="tag tw">Balade</span></div><div class="i-desc">📚 NY Public Library (Lions Beaux-Arts) → 🗼 Empire State Building (Art Déco 1931) → 📐 Flatiron Building (triangulaire 1902)</div><div class="i-dur">⏱ ~45 min · ~2 km · à voir en chemin</div></div>
-      <span class="i-km">~2 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h45</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍔 Shake Shack — Madison Square Park 🏛️ <span class="tag tr">Déjeuner tardif</span></div><div class="i-desc">11 Madison Ave · Juste derrière le Flatiron · Tables dans le parc · L'OG depuis 2004</div><div class="i-dur">⏱ ~$15–20/pp · 0.1 km</div></div>
-      <span class="i-km">0.1 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">16h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎨 MoMA <span class="tag ta">Musée</span><span class="tag tok">✅ Réservation faite</span></div><div class="i-desc">11 W 53rd St · $30/pp · Van Gogh · Monet · Picasso · 🕙 10h30–17h30 (sam 19h)</div><div class="i-dur">⏱ 1h30 · 1.5 km depuis Madison Sq</div></div>
-      <span class="i-km">1.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~17h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Balade Rockefeller → Grand Central → Chrysler <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">🏢 Rockefeller Center (Art Déco · Atlas statue) → 🚂 Grand Central Terminal (Beaux-Arts · plafond étoilé · Whispering Gallery) → 🏙️ Chrysler Building (lobby Art Déco + façade · intérieur seulement · 405 Lexington Ave · à 1 bloc de Grand Central)</div><div class="i-dur">⏱ ~1h15 · stops ~20–30 min</div></div>
-      <span class="i-km">~1 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h45</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🦪 Grand Central Oyster Bar 🏛️ <span class="tag tr">Verre + Huîtres</span><span class="tag tok">✅ Réservation faite</span></div><div class="i-desc">Lower Level · +30 variétés huîtres · 80 vins au verre</div><div class="i-dur">⏱ 1h · ⚠️ LUN–VEN seulement · oysterbarny.com</div></div>
-      <span class="i-km">0 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Dîner <span class="tag tr">Dîner</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Victor's Cafe · 236 W 52nd St · Cubain · $55–75 ✅</div><div class="opt"><span class="opt-l">B</span>Soothr · 204 E 13th St · Asiatique · $50–70 ✅</div><div class="opt"><span class="opt-l">C</span>Minetta Tavern · 113 MacDougal St · Burger · $60–80 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Mardi 30 juin</div>
-      <div class="day-title">Liberty Island · Times Square · Check-in Brooklyn · Vélo Williamsburg Bridge 🚲</div>
-      <div class="day-km">~10 km · Liberty 4h · Check-in Brooklyn soir · vélo fin d'après-midi</div>
-    </div>
-    <span class="day-badge b-checkin">Check-in Pod Brooklyn</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">~8h30</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🥐 Petit-déjeuner inclus <span class="tag tth">Interfaith 21</span></div><div class="i-desc">246 W 21st St · B&amp;B · compris dans la nuitée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">☕ Kaffe 1668 <span class="tag tbr">Café</span></div><div class="i-desc">275 Greenwich St, Tribeca · option café sur la route · 5 min Battery Park</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">11h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🗽 Liberty Island + Ellis Island <span class="tag ta">Excursion</span><span class="tag tok">✅ Réservation faite</span></div><div class="i-desc">Hôtel → Battery Park ~5 km (métro 1 → South Ferry) · Statue + Musée immigration</div><div class="i-dur">⏱ 4h minimum · Ferry inclus tickets</div></div>
-      <span class="i-km">~5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h30</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎪 Times Square / Theater District <span class="tag ta">Stop 30 min</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Ambiance de jour · Broadway · Néons</div><div class="i-dur">⏱ 30 min · subway depuis Battery Park</div></div>
-      <span class="i-km">subway</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~16h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Déjeuner tardif <span class="tag tr">Déjeuner</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Tetsu · 78 Leonard St · Japonais Chef Masa · $45–65 ✅</div><div class="opt"><span class="opt-l">B</span>Kiki's · 130 Division St · Grec · Chill · $30–45 ✅</div><div class="opt"><span class="opt-l">C</span>Macao Trading Co · 311 Church St · Asiatique · cocktails · $35–50 ✅</div><div class="opt"><span class="opt-l">D</span>Xi'an Famous Foods · Downtown · nouilles épicées · $12</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🏨 Check-out Chelsea → Check-in Pod Brooklyn <span class="tag tth">Transfert</span></div><div class="i-desc">247 Metropolitan Ave · Code PODPAL -10%</div></div>
-      <span class="i-km">taxi</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚲 Balade à vélo — Pont de Williamsburg <span class="tag tw">Balade vélo</span></div><div class="i-desc">Vélos gratuits du Pod · traversée du pont de Williamsburg → Lower East Side / Manhattan → retour Williamsburg</div><div class="i-dur">⏱ ~1h · fin d'après-midi</div></div>
-      <span class="i-km">~6 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~19h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️🇲🇽 Tacombi Williamsburg — Match Mexique <span class="tag tr">Dîner</span><span class="tag tm">Match ⚽</span></div><div class="i-desc">242 Metropolitan Ave · Tacos · match du Mexique à l'écran</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<div class="map-stick">
-  <div class="map-box">
-    <div class="map-title">🗺️ Carte NYC interactive</div>
-    <div id="map-nyc"></div>
-    <div class="map-legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--c-act)"></div>Activité</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-resto)"></div>Restaurant</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-brunch)"></div>Brunch</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-bar)"></div>Bar</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-walk)"></div>Balade</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-passby)"></div>Pass by</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-match)"></div>Match</div>
-      <div class="leg"><span style="display:inline-block;width:16px;border-top:2px dashed var(--c-walk);"></span>Parcours à pied</div>
-    </div>
-  </div>
-</div>
-</div>
-</div></div>
-</div>
-
-<hr class="divider">
-
-<!-- BROOKLYN -->
-<div id="bk">
-<div class="wrap alt">
-<div class="inner">
-<div class="two-col">
-<div>
-
-<div class="sec-head">
-  <div class="sec-eye">1 → 3 juillet · 2 nuits · ~8 km totaux</div>
-  <div class="sec-title">🌉 Brooklyn</div>
-  <div class="sec-meta">Williamsburg · Pod Brooklyn</div>
-</div>
-
-<div class="hotels">
-  <div class="hc">
-    <div class="hc-l">🏨 Williamsburg</div>
-    <div class="hc-n">Pod Brooklyn</div>
-    <div class="hc-a">247 Metropolitan Ave, Williamsburg, NY 11211</div>
-    <div class="hc-d">1 → 3 juillet</div>
-    <div class="hc-note">Vélos gratuits · Rooftop · Code PODPAL -10%</div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Mercredi 1 juillet</div>
-      <div class="day-title">Brooklyn à vélo 🚲 · Sunset Brooklyn Bridge</div>
-      <div class="day-km">~12 km vélo · Williamsburg → Manhattan → DUMBO → Brooklyn Heights → Retour · + sunset soir</div>
-    </div>
-    <span class="day-badge b-checkin">🚲 Vélo</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">🥞 Brunch <span class="tag tbr">Brunch</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Sunday in Brooklyn ⭐ 🏛️ · 348 Wythe Ave · Pancakes · $25–40 ✅</div><div class="opt"><span class="opt-l">B</span>Cafe Mogador · 133 Wythe Ave · Marocain · $20–35 ✅</div><div class="opt"><span class="opt-l">C</span>Marlow &amp; Sons · 81 Broadway · Huîtres + vins · $30–45 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~10h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚲 Récupérer les vélos <span class="tag tw">Vélo</span></div><div class="i-desc">Réception Pod · Réserver la veille · dépôt carte bancaire</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~10h15</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚲 Brooklyn Bike Tour — Aller <span class="tag tw">Balade vélo</span><span class="tag tw">4 tronçons</span></div><div class="i-desc">Williamsburg → Manhattan → DUMBO · pistes protégées</div></div>
-      <span class="i-km">~6.8 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🌊 Williamsburg Waterfront</div><div class="ws-int">Domino Park · East River State Park · Vue skyline Manhattan</div><div class="ws-type">~10h15 · 1.5 km</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🌉 Williamsburg Bridge → Manhattan</div><div class="ws-int">⚠️ Piste nord du pont · Vue East River + Lower Manhattan</div><div class="ws-type">~10h45 · 1.8 km</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🗽 Lower East Side</div><div class="ws-int">Orchard St · Dimes Square · Café rapide</div><div class="ws-type">~11h15 · 1 km</div></div></div>
-      <div class="ws"><span class="ws-n">4</span><div><div class="ws-name">🌉 Brooklyn Bridge → DUMBO</div><div class="ws-int">⚠️ Piste sud côté vélos · Arrivée DUMBO</div><div class="ws-type">~12h · 2.5 km</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~12h45</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍱 Déjeuner DUMBO <span class="tag tr">Déjeuner</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Time Out Market 🏛️ · 55 Water St · Food hall · $20–25</div><div class="opt"><span class="opt-l">B</span>Roberta's · 261 Moore St · Pizza · $25–40 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~14h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚲 Brooklyn Bike Tour — Retour <span class="tag tw">Balade vélo</span><span class="tag tw">2 tronçons</span></div><div class="i-desc">DUMBO → Brooklyn Heights → Williamsburg</div></div>
-      <span class="i-km">~5 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">5</span><div><div class="ws-name">📸 DUMBO → Brooklyn Heights Promenade</div><div class="ws-int">Vue iconique Manhattan + Brooklyn Bridge · Photo incontournable</div><div class="ws-type">~14h · 1.5 km</div></div></div>
-      <div class="ws"><span class="ws-n">6</span><div><div class="ws-name">🚲 Retour Williamsburg</div><div class="ws-int">Via Columbia St · Brooklyn waterfront · Pistes protégées</div><div class="ws-type">~14h30 · 3.5 km</div></div></div>
-      <div class="ws"><span class="ws-n">6bis</span><div><div class="ws-name">🕍 Quartier hassidique de Williamsburg</div><div class="ws-int">Balade dans le quartier juif hassidique de Williamsburg, pour découvrir son atmosphère unique et ses traditions</div><div class="ws-type">Autour de Lee Ave &amp; Division Ave · ~15 min</div></div></div>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚲 Rendre les vélos au Pod <span class="tag tw">Vélo</span></div><div class="i-desc">Fin de la boucle · ~12 km au total</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h30</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🍺 Brooklyn Brewery <span class="tag tb">Brasserie</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">79 N 11th St · Entrée gratuite</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~20h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌇 Sunset sur Brooklyn Bridge <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Brooklyn Bridge Park / DUMBO · coucher de soleil sur la skyline de Manhattan</div><div class="i-dur">⏱ ~45 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Dîner — Salt + Charcoal <span class="tag tr">Dîner</span><span class="tag tok">✅ Choisi</span></div><div class="i-desc">171 Grand St · Japonais · cocktails · $45–65</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Jeudi 2 juillet</div>
-      <div class="day-title">The Met · Harlem · Broadway 🎭</div>
-      <div class="day-km">~10 km · Manhattan (UES + Harlem) · Broadway le soir</div>
-    </div>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">~8h30</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">🥯 Petit-déjeuner bagel &amp; café <span class="tag tbr">Petit-déj</span></div><div class="i-desc">The Bagel Store, 191 N 9th St → Domino Park / East River State Park · vue sur la skyline de Manhattan</div><div class="i-dur">⏱ ~30 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~10h30</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🏛️ Visite du The Met (Metropolitan Museum of Art) <span class="tag ta">Musée</span></div><div class="i-desc">1000 5th Ave, UES · Métro depuis Williamsburg (~45 min) · collections encyclopédiques</div><div class="i-dur">⏱ 2h30–3h</div></div>
-      <span class="i-km">~10 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~15h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🏙️ Découverte de Harlem <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Apollo Theater · 125th Street · Malcolm X Blvd · métro 4/5/6 depuis le Met (~20 min)</div><div class="i-dur">⏱ fin d'après-midi</div></div>
-      <span class="i-km">~5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍗 Dîner chez Sylvia's <span class="tag tr">Dîner</span></div><div class="i-desc">328 Malcolm X Blvd, Harlem · célèbre pour son poulet frit et ses ribs</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~20h00</span><div class="i-dot" style="background:var(--c-concert)"></div>
-      <div class="i-body"><div class="i-name">🎭 Broadway — The Great Gatsby <span class="tag ta">Comédie musicale</span><span class="tag tres">Réserver!</span></div><div class="i-desc">Broadway Theatre, 1681 Broadway · métro depuis Harlem (~30 min)</div><div class="i-dur">⏱ ~2h30</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Vendredi 3 juillet</div>
-      <div class="day-title">Dernier matin Brooklyn → Chicago ✈️</div>
-      <div class="day-km">~1 km · Départ après-midi</div>
-    </div>
-    <span class="day-badge b-flight">Vol JFK → ORD</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">☕ Dernier café BK <span class="tag tbr">Café</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Devocion 🏛️ · 148 Grand St · Verrière · $8–12 ✅</div><div class="opt"><span class="opt-l">B</span>PPL · 189 Roebling St · $6–10 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time"></span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌅 Domino Park <span class="tag tw">Balade</span></div><div class="i-desc">Au revoir Brooklyn · Vue Manhattan</div><div class="i-dur">⏱ 20 min</div></div>
-      <span class="i-km">0.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Après-midi</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">✈️ Vol JFK → ORD <span class="tag ttt">Vol</span><span class="tag tres">Réserver!</span></div><div class="i-desc">Départ pour Chicago · vol à réserver</div><div class="i-dur">⏱ ~3–4h de vol</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<div class="map-stick">
-  <div class="map-box">
-    <div class="map-title">🗺️ Carte Brooklyn interactive</div>
-    <div id="map-bk"></div>
-    <div class="map-legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--c-act)"></div>Activité</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-resto)"></div>Restaurant</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-brunch)"></div>Brunch</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-bar)"></div>Bar</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-walk)"></div>Balade</div>
-      <div class="leg"><span style="display:inline-block;width:16px;border-top:3px solid #c0392b;"></span>Parcours vélo</div>
-    </div>
-  </div>
-</div>
-</div>
-</div></div>
-</div>
-
-<hr class="divider">
-
-<!-- CHICAGO -->
-<div id="chi">
-<div class="wrap">
-<div class="inner">
-<div class="two-col">
-<div>
-
-<div class="sec-head">
-  <div class="sec-eye">3 → 9 juillet · 6 nuits · ~18 km totaux</div>
-  <div class="sec-title">🌆 Chicago</div>
-  <div class="sec-meta">Chez Albert (3–5 jul) · Freehand (5–9 jul)</div>
-</div>
-
-<div class="hotels">
-  <div class="hc">
-    <div class="hc-l">🏠 Hébergement</div>
-    <div class="hc-n">Chez Albert</div>
-    <div class="hc-a">MV3J+268 Romeoville, IL</div>
-    <div class="hc-d">3 → 5 juillet</div>
-  </div>
-  <div class="hc">
-    <div class="hc-l">🏨 River North</div>
-    <div class="hc-n">Freehand Chicago</div>
-    <div class="hc-a">19 E Ohio St, River North, IL 60611</div>
-    <div class="hc-d">5 → 9 juillet</div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Vendredi 3 juillet · Chez Albert</div>
-      <div class="day-title">Arrivée · Loop · Art Institute 🎨</div>
-      <div class="day-km">~3 km · Millennium Park</div>
-    </div>
-    <span class="day-badge b-match">🇦🇷 Round of 32</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Après-midi</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🫘 The Bean <span class="tag tfr">Gratuit</span></div><div class="i-desc">201 E Randolph St · Photo obligatoire</div><div class="i-dur">⏱ 20 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">17h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎨 Art Institute <span class="tag ta">Musée</span></div><div class="i-desc">111 S Michigan Ave · ~$26/pp · 🕙 11h–17h (jeu 20h) · ⚠️ fermé mar</div><div class="i-dur">⏱ 2h</div></div>
-      <span class="i-km">0.3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-concert)"></div>
-      <div class="i-body"><div class="i-name">🎻 Option : Rachmaninov Piano Concerto n°3 <span class="tag tco">Concert</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Grant Park Orchestra · Jay Pritzker Pavilion · Plein air Great Lawn</div><div class="i-dur">⏱ 18h30 · Si vol arrive assez tôt · Apporter couverture</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍔 Dîner Fulton Market <span class="tag tr">Dîner</span><span class="tag tres">Réserver!</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Au Cheval 🏛️ · 800 W Randolph St · Burger · $50–70 ✅</div><div class="opt"><span class="opt-l">B</span>Girl &amp; the Goat · 809 W Randolph St · Partage créatif · $65–90 ✅</div><div class="opt"><span class="opt-l">C</span>Rose Mary · 932 W Fulton Market · Croate-Italien · $60–85 ✅</div><div class="opt"><span class="opt-l">D</span>XOCO (Rick Bayless) · 449 N Clark St · mexicain casual · $15–20 (ou dim 5)</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">17h00 ?</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">🇦🇷 Argentine — Round of 32 <span class="tag tm">Match ⚽</span></div><div class="i-desc">Miami · 17h00 (à confirmer) · FOX Sports</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">22h00</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🎭 Option : Bordel Chicago <span class="tag tb">Speakeasy</span></div><div class="i-desc">1721 W Division St · Burlesque · Jeu-Sam · Si pas trop fatigués</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Samedi 4 juillet 🚗 · Chez Albert</div>
-      <div class="day-title">Starved Rock 🪨 · Indiana Dunes 🏖️ · Museum of Science 🚢 · 4 Juillet 🎆</div>
-      <div class="day-km">~360 km voiture · très grande journée road-trip</div>
-    </div>
-    <span class="day-badge b-car">🚗 Voiture</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">8h00</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚗 Départ Romeoville → Starved Rock <span class="tag ttt">Route</span></div><div class="i-desc">I-80 West · Départ matinal</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">~90 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">9h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🪨 Starved Rock State Park <span class="tag ta">Nature</span></div><div class="i-desc">Illinois Canyon + LaSalle Canyon · Cascades &amp; falaises de grès</div><div class="i-dur">⏱ ~2h · Rando canyons</div></div>
-      <span class="i-km">Trail</span>
-    </div>
-    <div class="item">
-      <span class="i-time">11h00</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚗 Starved Rock → Indiana Dunes <span class="tag ttt">Route</span></div><div class="i-desc">I-80 East · Trajet le plus long · Déjeuner en route</div><div class="i-dur">⏱ ~1h45</div></div>
-      <span class="i-km">~185 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">12h45</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🏖️ Indiana Dunes National Park <span class="tag ta">Nature</span></div><div class="i-desc">Porter, IN · $20/voiture · Trail 9 + baignade Lac Michigan</div><div class="i-dur">⏱ ~1h30 · Trail 9 = 2.5 km</div></div>
-      <span class="i-km">2.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">14h15</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚗 Indiana Dunes → Museum of Science &amp; Industry <span class="tag ttt">Route</span></div><div class="i-desc">I-90 / I-94 puis DuSable Lake Shore Dr · sur la route du retour vers le Loop</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">~70 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">15h15</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🚢 Museum of Science &amp; Industry — U-505 <span class="tag ta">Musée</span><span class="tag tres">Réserver!</span></div><div class="i-desc">5700 S DuSable Lake Shore Dr · Sous-marin WWII · 🎟️ U-505 On-Board Tour (billet horodaté à acheter) · visite express avant fermeture</div><div class="i-dur">⏱ ~1h · 🕙 vérifier horaires étendus jour férié · griffinmsi.org/tickets</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">16h15</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚗 Museum of Science &amp; Industry → Loop <span class="tag ttt">Route</span></div><div class="i-desc">DuSable Lake Shore Dr · retour au centre-ville</div><div class="i-dur">⏱ ~20 min</div></div>
-      <span class="i-km">~15 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~16h35</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Dîner américain rapide <span class="tag tr">Sur le pouce</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Portillo's 🏛️ · hot-dogs + cheese fries · icône Chicago · rapide avant les feux · $12–15 ✅</div><div class="opt"><span class="opt-l">B</span>Harley-Davidson Roadhouse · 3057 N Harlem Ave · hot-dogs américains · groupe de rock live · déco motos &amp; drapeaux US · ambiance motard 🏍️🇺🇸 · $20–30 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">17h00</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Millennium Park <span class="tag tw">Balade</span></div><div class="i-desc">Arriver tôt pour une bonne place sur la pelouse (Great Lawn)</div><div class="i-dur">⏱ Installation pique-nique</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">18h30</span><div class="i-dot" style="background:var(--c-concert)"></div>
-      <div class="i-body"><div class="i-name">🎻 Independence Day Salute <span class="tag tco">Concert</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Grant Park Orchestra · Jay Pritzker Pavilion · Musique patriotique</div><div class="i-dur">⏱ ~1h30 · Ambiance festive 4 juillet</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~21h30</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">🎆 Feux d'artifice — Navy Pier <span class="tag tfr">Gratuit</span></div><div class="i-desc">600 E Grand Ave · Arriver tôt pour la vue</div><div class="i-dur">⏱ Spectacle ~30 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Dimanche 5 juillet 🚗 · Check-in Freehand</div>
-      <div class="day-title">Frank Lloyd Wright 🏛️ · Pequod's 🍕 · MoCP 📷</div>
-      <div class="day-km">~30 km voiture · ~3.5 km à pied</div>
-    </div>
-    <span class="day-badge b-car">🚗 Voiture</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">10h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🏛️ Frank Lloyd Wright Home <span class="tag tun">UNESCO</span><span class="tag tres">Réserver!</span></div><div class="i-desc">951 Chicago Ave, Oak Park · ~$22/pp · Tour guidé</div><div class="i-dur">⏱ 1h30 · 🕙 visites 10h–16h · flwright.org</div></div>
-      <span class="i-km">~15 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~11h30</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Tour du quartier — maisons de Frank Lloyd Wright <span class="tag tw">Balade</span></div><div class="i-desc">Oak Park · boucle à pied autour de plusieurs maisons emblématiques</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">~1.5 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">🏠 Frank W. Thomas House</div><div class="ws-int">L'une des premières vraies maisons Prairie · longues lignes horizontales, toit peu pentu, fenêtres regroupées</div><div class="ws-type">210 Forest Ave, Oak Park</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🏠 Arthur Heurtley House</div><div class="ws-int">Souvent considérée comme un chef-d'œuvre · masse très horizontale, avant-toits profonds, composition très équilibrée</div><div class="ws-type">318 Forest Ave, Oak Park</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🏠 Walter Gale House</div><div class="ws-int">Période de transition · influences encore traditionnelles, mais Wright commence déjà à casser les codes</div><div class="ws-type">1031 Chicago Ave, Oak Park</div></div></div>
-      <div class="ws"><span class="ws-n">4</span><div><div class="ws-name">🏠 Rollin Furbeck House</div><div class="ws-int">Période de transition · influences traditionnelles encore visibles, transition vers le style Prairie</div><div class="ws-type">515 Fair Oaks Ave, Oak Park</div></div></div>
-      <div class="ws"><span class="ws-n">5</span><div><div class="ws-name">🏠 Nathan G. Moore House</div><div class="ws-int">L'exception · style Tudor Revival anglais imposé par le client · Wright disait ne pas aimer ce style mais a dû s'y plier · contraste fort avec ses maisons Prairie</div><div class="ws-type">333 Forest Ave, Oak Park</div></div></div>
-    </div>
-    <div class="item" style="margin-top:8px;">
-      <span class="i-time">~12h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍕 Déjeuner — Pequod's Pizza 🏛️ <span class="tag tr">Déjeuner</span></div><div class="i-desc">2207 N Clybourn Ave · notre première deep dish, en compagnie d'Albert · croûte caramélisée emblématique</div><div class="i-dur">⏱ $20–30</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~13h45</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚗 Oak Park → MoCP <span class="tag ttt">Route</span></div><div class="i-desc">Retour vers le Loop · Columbia College</div><div class="i-dur">⏱ ~25 min</div></div>
-      <span class="i-km">~15 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">14h15</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">📷 MoCP — Stephen Shore &amp; Henri Cartier-Bresson <span class="tag ta">Musée</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">600 S Michigan Ave · Museum of Contemporary Photography (Columbia College) · expositions photo</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">17h00</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">📚 Wicker Park + Myopic Books <span class="tag tw">Balade</span></div><div class="i-desc">291 N Milwaukee Ave · Quartier bohème</div><div class="i-dur">⏱ 1h · 1 km</div></div>
-      <span class="i-km">1 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~17h30</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎵 Reckless Records Wicker Park <span class="tag ta">Disquaire</span></div><div class="i-desc">1379 N Milwaukee Ave · même rue que Myopic · vinyles neufs &amp; occasion · ouvert 7j/7 10h–19h</div><div class="i-dur">⏱ ~45 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h15</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌿 The 606 Trail <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Entrée Bloomingdale Ave &amp; N Ridgeway · ancienne voie ferrée surélevée · traverse Wicker Park → Bucktown → Logan Square · street art · coucher de soleil</div><div class="i-dur">⏱ ~1h · 4.3 km</div></div>
-      <span class="i-km">4.3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~19h30</span><div class="i-dot" style="background:var(--c-jazz)"></div>
-      <div class="i-body"><div class="i-name">🍸 Option : The Violet Hour <span class="tag tb">Cocktails</span></div><div class="i-desc">1520 N Damen Ave · Wicker Park · bar à cocktails speakeasy primé · juste après le 606 · ~$15–20/cocktail</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🏨 Check-in Freehand <span class="tag tth">Check-in</span></div><div class="i-desc">19 E Ohio St, River North</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">20h00</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🎵 Option : Blue Chicago 🏛️ <span class="tag tb">Blues Live</span></div><div class="i-desc">536 N Clark St · River North · Blues live · ouvert dim dès 20h</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">19h00</span><div class="i-dot" style="background:var(--c-jazz)"></div>
-      <div class="i-body"><div class="i-name">🎷 Option : Green Mill 🏛️ <span class="tag tj">Jazz</span></div><div class="i-desc">4802 N Broadway · speakeasy d'Al Capone · dim : Uptown Poetry Slam 19h + Soul Jazz · sans résa · 💵 cash only</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Lundi 6 juillet</div>
-      <div class="day-title">Loop Walking Tour 🚶 · Riverwalk</div>
-      <div class="day-km">~6.5 km · Loop 5 km + Riverwalk 1.5 km</div>
-    </div>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">8h45</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">☕ Intelligentsia Coffee 🏛️ <span class="tag ta">Café</span></div><div class="i-desc">🌟 Millennium Park · 53 E Randolph St · torréfacteur emblématique de Chicago · avant le Loop Tour · $6–10</div><div class="i-dur">⏱ ~30 min</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">9h00</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Chicago Loop Walking Tour <span class="tag tfr">Gratuit</span><span class="tag tw">21 stops · ~3h</span></div><div class="i-desc">Porter bonnes chaussures + eau</div></div>
-      <span class="i-km">5 km</span>
-    </div>
-    <div class="wgrid" style="grid-template-columns:1fr;gap:6px;">
-      <div class="ws"><span class="ws-n">1</span><div><div class="ws-name">⛲ Buckingham Fountain</div><div class="ws-int">Une des plus grandes fontaines du monde · inspirée de Versailles · jets d'eau jusqu'à 46 m · symbole de Chicago depuis 1927 · spectacle aquatique toutes les heures en été</div><div class="ws-type">301 S Columbus Dr · 20 min</div></div></div>
-      <div class="ws"><span class="ws-n">2</span><div><div class="ws-name">🏛️ Chicago Board of Trade</div><div class="ws-int">Chef-d'œuvre Art Déco 1930 · statue de Cérès (déesse des moissons) au sommet · ancien cœur financier des marchés à terme US · lobby accessible gratuitement</div><div class="ws-type">141 W Jackson Blvd · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">3</span><div><div class="ws-name">🪟 Chicago Cultural Center ⭐</div><div class="ws-int">⭐ Incontournable · plus grand dôme Tiffany du monde (Preston Bradley Hall) · expos d'art contemporain gratuites · architecture Beaux-Arts 1897 · entrer obligatoire !</div><div class="ws-type">78 E Washington St · 15 min</div></div></div>
-      <div class="ws"><span class="ws-n">4</span><div><div class="ws-name">🌉 DuSable Bridge</div><div class="ws-int">Pont bascule historique 1920 · tours ornementées avec bas-reliefs retraçant l'histoire de Chicago · vue panoramique sur la rivière et les gratte-ciels · meilleure photo skyline du Loop</div><div class="ws-type">N Michigan Ave &amp; Chicago River · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">5</span><div><div class="ws-name">🚢 McCormick Bridgehouse</div><div class="ws-int">Musée à l'intérieur du mécanisme du pont bascule · engrenages géants visibles · comprendre comment fonctionne le pont · ouvert mer-dim</div><div class="ws-type">99 Chicago Riverwalk · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">6</span><div><div class="ws-name">🕊️ Vietnam Veterans Memorial</div><div class="ws-int">Mur de granit poli reflétant la rivière · noms des soldats de l'Illinois gravés · emplacement intimiste au bord de l'eau · sobre et émouvant</div><div class="ws-type">24 E Wacker Dr · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">7</span><div><div class="ws-name">🎭 The Chicago Theatre</div><div class="ws-int">Marquee néon iconique 1921 · style baroque français · une des enseignes les plus photographiées de la ville · salle de spectacle encore active</div><div class="ws-type">175 N State St · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">8</span><div><div class="ws-name">📚 Harold Washington Library</div><div class="ws-int">Plus grande bibliothèque publique du monde à son inauguration · Winter Garden au 9e étage (immense véranda verre &amp; acier) · oasis cachée et gratuite en plein Loop · architecture postmoderne spectaculaire</div><div class="ws-type">400 S State St · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">9</span><div><div class="ws-name">🏨 Palmer House Hilton ⭐</div><div class="ws-int">⭐ Stop gourmand + architecture · lobby néo-baroque parmi les plus beaux des USA (plafonds peints à la main, fresques, dorures, piliers monumentaux), inauguré 1873 · 🍫 brownie original inventé ici en 1893 pour l'Exposition Universelle, encore servi selon la recette d'origine (sauce abricot + noix) au Lockwood ou café du lobby · entrée libre dans le lobby</div><div class="ws-type">17 E Monroe St · 20 min</div></div></div>
-      <div class="ws"><span class="ws-n">9bis</span><div><div class="ws-name">🎵 Reckless Records — Loop</div><div class="ws-int">Disquaire culte de Chicago · vinyles neufs &amp; d'occasion · à 3 min à pied du Palmer House · idéal après le brownie</div><div class="ws-type">26 E Madison St · ~20 min</div></div></div>
-      <div class="ws"><span class="ws-n">10</span><div><div class="ws-name">🌀 Miró's Chicago</div><div class="ws-int">Sculpture surréaliste de Joan Miró offerte à Chicago en 1981 · bronze + céramique + mosaïque · représente une femme cosmique · face au Picasso, les deux œuvres se répondent · gratuit</div><div class="ws-type">77 W Washington St · 5 min</div></div></div>
-      <div class="ws"><span class="ws-n">11</span><div><div class="ws-name">🎨 Picasso Statue</div><div class="ws-int">Sculpture abstraite de 15 m offerte par Picasso à Chicago en 1967 · mystère total sur ce qu'elle représente (femme ? chien ? Jacqueline Picasso ?) · Daley Plaza · cadeau sans contrepartie · gratuit</div><div class="ws-type">50 W Washington St · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">12</span><div><div class="ws-name">🏗️ The Rookery Building ⭐</div><div class="ws-int">⭐ Incontournable · plus vieux gratte-ciel de Chicago encore debout (1888) · cour intérieure entièrement redessinée par Frank Lloyd Wright en 1905 · lumière naturelle + ornements dorés spectaculaires · entrée libre dans le lobby</div><div class="ws-type">209 S LaSalle St · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">13</span><div><div class="ws-name">🦩 Calder's Flamingo</div><div class="ws-int">Sculpture rouge en acier de 16 m signée Alexander Calder · inaugurée en 1974 · contraste saisissant avec les tours de verre et acier du Federal Plaza · art public monumental · gratuit</div><div class="ws-type">210 S Dearborn St · 5 min</div></div></div>
-      <div class="ws"><span class="ws-n">14</span><div><div class="ws-name">🏢 Willis Tower</div><div class="ws-int">Ancien plus haut bâtiment du monde (1973–1998) · 442 m · 110 étages · architecture en faisceaux tubulaires unique au monde · vue extérieure suffit amplement</div><div class="ws-type">233 S Wacker Dr · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">15</span><div><div class="ws-name">🏛️ Marquette Building</div><div class="ws-int">Joyau de l'École de Chicago 1895 · lobby avec mosaïques en verre retraçant l'exploration de l'Amérique par Jacques Marquette · un des premiers gratte-ciels de l'histoire de l'architecture</div><div class="ws-type">140 S Dearborn St · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">16</span><div><div class="ws-name">💦 Crown Fountain</div><div class="ws-int">Deux tours de verre de 15 m projetant des visages de vrais Chicagoans en vidéo · l'eau jaillit de la bouche des visages en été · œuvre de Jaume Plensa · interactif, les enfants adorent</div><div class="ws-type">Millennium Park · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">17</span><div><div class="ws-name">🏛️ Millennium Monument</div><div class="ws-int">Colonnade néoclassique reconstruite en 2001 · réplique fidèle de l'originale de 1917 · encadre majestueusement le Millennium Park côté Michigan Ave · gratuit</div><div class="ws-type">Wrigley Square · 5 min</div></div></div>
-      <div class="ws"><span class="ws-n">18</span><div><div class="ws-name">🎵 Jay Pritzker Pavilion</div><div class="ws-int">Scène de concert outdoor dessinée par Frank Gehry · ruban d'acier spectaculaire · acoustique exceptionnelle grâce à un réseau de haut-parleurs sur toute la pelouse · 🎬 Ratatouille ici mardi 7 au soir à 18h30 !</div><div class="ws-type">201 E Randolph St · Pass by</div></div></div>
-      <div class="ws"><span class="ws-n">19</span><div><div class="ws-name">🫘 Cloud Gate — The Bean ⭐</div><div class="ws-int">⭐ Photo absolument obligatoire · sculpture de 110 tonnes d'acier poli · reflète le skyline + les visiteurs de façon déformée · dessous appelé « l'ombilic » · chef-d'œuvre d'Anish Kapoor · gratuit</div><div class="ws-type">Millennium Park · 10 min</div></div></div>
-      <div class="ws"><span class="ws-n">20</span><div><div class="ws-name">☕ Pause + Fin du tour</div><div class="ws-int">Fin de la boucle · pause café au bord de l'eau pour récupérer avant le déjeuner</div><div class="ws-type">Chicago Riverwalk · ~12h</div></div></div>
-    </div>
-    <div class="item" style="margin-top:8px;">
-      <span class="i-time">Midi</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Déjeuner Loop <span class="tag tr">Déjeuner</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>RPM Italian · 52 W Illinois St · Italien · $40–55 ✅</div><div class="opt"><span class="opt-l">B</span>The Purple Pig · 444 N Michigan Ave · Méditerranéen · $35–50 ✅</div><div class="opt"><span class="opt-l">C</span>Billy Goat Tavern 🏛️ · le cheezborger culte (sous Michigan Ave, 1934) · $10–15</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~14h</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍿 Garrett Popcorn 🏛️ <span class="tag tr">Snack</span></div><div class="i-desc">Loop · le fameux « Chicago Mix » (caramel + cheddar) · à emporter en baladant</div><div class="i-dur">⏱ $8–15</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Après-midi</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🚶 Chicago Riverwalk <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Promenade rivière · Vue architecture</div><div class="i-dur">⏱ 45 min · 1.5 km</div></div>
-      <span class="i-km">1.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~17h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍝 Dîner tôt <span class="tag tr">Dîner</span><span class="tag tres">Réserver!</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>Duck Duck Goat · 857 W Fulton Market · Chinois créatif · $55–75 ✅</div><div class="opt"><span class="opt-l">B</span>Girl &amp; the Goat · 809 W Randolph St · Partage créatif · $65–90 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">20h00</span><div class="i-dot" style="background:var(--c-jazz)"></div>
-      <div class="i-body"><div class="i-name">🎷 Green Mill 🏛️ <span class="tag tj">Jazz</span></div><div class="i-desc">4802 N Broadway · speakeasy d'Al Capone · Groupe de jazz « Joel Paterson &amp; Friends » — 20h00 toute la soirée · sans résa · 💵 cash only</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Mardi 7 juillet</div>
-      <div class="day-title">Match 🇦🇷🇪🇬 · Pilsen 🎨 · Chess Records 🎸 · Ratatouille 🎬</div>
-      <div class="day-km">~2.5 km · Pilsen 1.5 km · Riverwalk nuit 1 km</div>
-    </div>
-    <span class="day-badge b-match">🇦🇷 vs 🇪🇬</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍴 Snacks divers <span class="tag tr">Snacks</span></div><div class="opts"><div class="opt"><span class="opt-l">A</span>XOCO (Rick Bayless) · 449 N Clark St · churros, chocolat chaud, tortas de huevo · $15–20</div><div class="opt"><span class="opt-l">B</span>Cafe Jumping Bean · 1439 W 18th St · café mexicain culte de Pilsen · $8–12</div><div class="opt"><span class="opt-l">C</span>HaiSous Vietnamese · 1800 S Carpenter St · Vietnamien créatif · $30–45 ✅</div><div class="opt"><span class="opt-l">D</span>Dusek's · 1227 W 18th St · Gastropub · bières craft · $30–45 ✅</div><div class="opt"><span class="opt-l">E</span>Birria tacos · street food Pilsen · ultra authentique · $10–15 ✅</div></div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">11h00</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">🇦🇷 Argentine – Égypte <span class="tag tm">Match ⚽</span></div><div class="i-desc">Avec une deep dish pizza 🍕 · sur écran, sports bar Pilsen/Loop</div><div class="i-dur">⏱ ~2h de match</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Début d'après-midi</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎨 Pilsen — National Museum Mexican Art <span class="tag tfr">Gratuit</span></div><div class="i-desc">1852 W 19th St · Murales incroyables</div><div class="i-dur">⏱ 2h · 1.5 km murales à pied</div></div>
-      <span class="i-km">1.5 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">16h00</span><div class="i-dot" style="background:var(--c-jazz)"></div>
-      <div class="i-body"><div class="i-name">🎸 Chess Records — Visite du studio de blues <span class="tag ta">Musée</span></div><div class="i-desc">2120 S Michigan Ave · studio légendaire de Chess Records · berceau du Chicago blues (Muddy Waters, Chuck Berry, Howlin' Wolf)</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">18h30</span><div class="i-dot" style="background:var(--c-film)"></div>
-      <div class="i-body"><div class="i-name">🎬 Ratatouille — Millennium Park <span class="tag tfi">Film</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Jay Pritzker Pavilion · Écran LED 40 pieds · Pique-nique bienvenu</div><div class="i-dur">⏱ ~2h · Arriver avant 18h · Apporter couverture</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~20h45</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌃 Chicago Riverwalk by night <span class="tag tw">Balade</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Promenade nocturne · gratte-ciels illuminés · juste après Ratatouille</div><div class="i-dur">⏱ 45 min · 1 km</div></div>
-      <span class="i-km">1 km</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Mercredi 8 juillet</div>
-      <div class="day-title">Art Institute 🎨 · Miller's Pub 🍖 · Boat Tour 🚤 · Buddy Guy's 🎸</div>
-      <div class="day-km">~8 km bateau · Loop + River North</div>
-    </div>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">10h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎨 Art Institute of Chicago <span class="tag ta">Musée</span><span class="tag tres">Réserver!</span></div><div class="i-desc">111 S Michigan Ave · Entrée entre 10h et 11h grâce à un generous benefactor member · visite quasiment privée</div><div class="i-dur">⏱ Toute la matinée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~13h30</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍖 Déjeuner tardif — Miller's Pub <span class="tag tr">Déjeuner</span></div><div class="i-desc">134 S Wabash Ave · Spécialités : ribs et steak</div><div class="i-dur">⏱ $30–50</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">17h00</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🚤 Architecture Boat Tour <span class="tag ta">Tour 90 min</span><span class="tag tres">MAINTENANT!</span></div><div class="i-desc">Chicago River · ~$50/pp · Vue architecture</div><div class="i-dur">⏱ 90 min · ~8 km rivière · ⚠️ SOLD OUT juillet!</div></div>
-      <span class="i-km">8 km bateau</span>
-    </div>
-    <div class="item">
-      <span class="i-time">18h30</span><div class="i-dot" style="background:var(--c-concert)"></div>
-      <div class="i-body"><div class="i-name">🎻 Sibelius Symphonie n°2 <span class="tag tco">Concert</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Grant Park Orchestra · Jay Pritzker Pavilion · Plein air · Great Lawn</div><div class="i-dur">⏱ 18h30 · Apporter couverture</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">18h00</span><div class="i-dot" style="background:var(--c-film)"></div>
-      <div class="i-body"><div class="i-name">🎬 Matilda @ Gallagher Way <span class="tag tfi">Film</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">3635 N Clark St · Gates 18h · Film 19h30 · VIP $33</div><div class="i-dur">⏱ ~3h · Statue Ernie Banks · Capacité limitée!</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">21h00</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🎸 Buddy Guy's Legends 🏛️ <span class="tag tb">Blues</span></div><div class="i-desc">700 S Wabash Ave · Jimmy Burns – Host the Jam · Show starts: 9:00 PM · légendaire guitariste, chanteur et compositeur de blues de Chicago, né dans le Mississippi en 1943 · Soul food · ⚠️ ouvert mer–dim</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Dîner</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🍖 Option : Twin Anchors — ribs de Sinatra <span class="tag tr">Ribs</span></div><div class="i-desc">1655 N Sedgwick St · Old Town · les ribs mythiques, repaire de Frank Sinatra depuis 1932 · dernière soirée · $35–50 · réserver</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Jeudi 9 juillet · Départ Seattle ✈️</div>
-      <div class="day-title">Déjeuner Loop 🍽️ · Vol Chicago → Seattle 15h45</div>
-      <div class="day-km">~5h de vol · ORD → SEA</div>
-    </div>
-    <span class="day-badge b-flight">Vol ORD → SEA 15h45</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">~11h00</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Déjeuner rapide autour du Loop <span class="tag tr">Déjeuner</span></div><div class="i-desc">Dernier repas à Chicago avant l'aéroport</div><div class="i-dur">⏱ ~1h</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~12h15</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🏨 Check-out Freehand <span class="tag tth">Check-out</span></div><div class="i-desc">19 E Ohio St · dernière nuit à Chicago non gardée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~12h45</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚕 Transfert vers O'Hare <span class="tag ttt">Transfert</span></div><div class="i-desc">River North → ORD · prévoir ~45 min + marge sécurité</div></div>
-      <span class="i-km">taxi</span>
-    </div>
-    <div class="item">
-      <span class="i-time">15h45</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">✈️ Vol ORD → SEA <span class="tag ttt">Vol</span><span class="tag tres">Réserver!</span></div><div class="i-desc">Départ Chicago 15h45 · arrivée Seattle en soirée · check-in chez Oriol &amp; Kelsie</div><div class="i-dur">⏱ ~5h de vol</div></div>
-      <span class="i-km">~5h</span>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<div class="map-stick">
-  <div class="map-box">
-    <div class="map-title">🗺️ Carte Chicago interactive</div>
-    <div id="map-chi"></div>
-    <div class="map-legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--c-act)"></div>Activité</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-resto)"></div>Restaurant</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-bar)"></div>Bar/Blues</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-walk)"></div>Balade</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-concert)"></div>Concert</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-match)"></div>Match/Film</div>
-      <div class="leg"><span style="display:inline-block;width:16px;border-top:2px dashed var(--c-walk);"></span>Parcours à pied</div>
-    </div>
-  </div>
-</div>
-
-</div>
-</div></div>
-</div>
-
-<hr class="divider">
-
-<!-- SEATTLE -->
-<div id="sea">
-<div class="wrap">
-<div class="inner">
-<div class="two-col">
-<div>
-
-<div class="sec-head">
-  <div class="sec-eye">9 → 13 juillet · 4 nuits · 🎂 anniversaire</div>
-  <div class="sec-title">🌲 Seattle</div>
-  <div class="sec-meta">Chez Oriol &amp; Kelsie · puis vol retour Barcelone (14 jul)</div>
-</div>
-
-<div class="hotels">
-  <div class="hc">
-    <div class="hc-l">🏠 Hébergement</div>
-    <div class="hc-n">Chez Oriol &amp; Kelsie</div>
-    <div class="hc-a">Seattle</div>
-    <div class="hc-d">10 → 13 juillet</div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Vendredi 10 juillet · Chez Oriol &amp; Kelsie</div>
-      <div class="day-title">Arrivée Seattle · 🇦🇷 Quart · 🎂 Anniversaire</div>
-      <div class="day-km">Vol ORD → SEA</div>
-    </div>
-    <span class="day-badge b-match">🇦🇷 Quart de finale</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-hotel)"></div>
-      <div class="i-body"><div class="i-name">🏠 Réveil chez Oriol &amp; Kelsie <span class="tag tth">Check-in</span></div><div class="i-desc">Arrivés hier soir (vol 15h45 ORD → SEA du 9 juillet)</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~16h00</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">🇦🇷 Argentine — Quart de finale <span class="tag tm">Match ⚽</span></div><div class="i-desc">Fan zone Seattle Center ou Waterfront Park · grand écran · ambiance WC 2026</div><div class="i-dur">⏱ ~2h de match</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~18h30</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🍸 Let the party begin <span class="tag tb">Apéro</span></div><div class="i-desc">Début de soirée</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~20h00</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🎂 Birthday Dinner — SURPRISE <span class="tag tr">Dîner</span><span class="tag tres">🤫 Surprise</span></div><div class="i-desc">Dîner d'anniversaire surprise</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">~22h30</span><div class="i-dot" style="background:var(--c-bar)"></div>
-      <div class="i-body"><div class="i-name">🕺 Keep the party going 🎉 <span class="tag tb">Soirée</span></div><div class="i-desc">On continue la fête !</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Samedi 11 juillet</div>
-      <div class="day-title">Pike Place · Waterfront · Seattle Center</div>
-      <div class="day-km">~5 km · à pied / monorail</div>
-    </div>
-    <span class="day-badge b-checkin">✓ à valider avec O&amp;K</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">dès 8h</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🐟 Pike Place Market <span class="tag tw">Marché</span></div><div class="i-desc">Poissons volants · fleurs · street musicians · vendeurs locaux</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">☕ Original Starbucks 🏛️ <span class="tag tbr">Café</span></div><div class="i-desc">1912 Pike Place · le 1er Starbucks du monde</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌊 Seattle Waterfront <span class="tag tw">Balade</span></div><div class="i-desc">Vue Puget Sound · Olympic Mountains</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Midi</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎡 Seattle Great Wheel <span class="tag ta">Option</span></div><div class="i-desc">Pier 57 · ~$16/pp · vue panoramique</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Après-midi</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎨 Chihuly Garden and Glass <span class="tag ta">Musée</span></div><div class="i-desc">Seattle Center · ~$32/pp · sculptures de verre spectaculaires</div><div class="i-dur">⏱ 1h30</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Après-midi</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🎸 Museum of Pop Culture (MoPOP) <span class="tag ta">Musée</span></div><div class="i-desc">~$32/pp · Nirvana · Jimi Hendrix · archi Frank Gehry</div><div class="i-dur">⏱ 2h</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">📍 Kerry Park <span class="tag tw">Vue</span><span class="tag tfr">Gratuit</span></div><div class="i-desc">Meilleure vue skyline + Space Needle · 15 min à pied de Seattle Center</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Soir</span><div class="i-dot" style="background:var(--c-resto)"></div>
-      <div class="i-body"><div class="i-name">🍽️ Dîner Capitol Hill <span class="tag tr">Dîner</span></div><div class="i-desc">Quartier le plus vivant de Seattle</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Option</span><div class="i-dot" style="background:var(--c-match)"></div>
-      <div class="i-body"><div class="i-name">⚾ Option : Mariners baseball <span class="tag tm">Match</span></div><div class="i-desc">T-Mobile Park · si match à domicile</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Dimanche 12 juillet</div>
-      <div class="day-title">Nature + Ferry · 3 options 🌲</div>
-      <div class="day-km">Option Vancouver ? · à valider</div>
-    </div>
-    <span class="day-badge b-checkin">✓ à valider avec O&amp;K</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Option A</span><div class="i-dot" style="background:var(--c-act)"></div>
-      <div class="i-body"><div class="i-name">🚢 Bainbridge Island <span class="tag tres">Recommandé</span><span class="tag tfr">Ferry gratuit ORCA</span></div><div class="i-desc">Ferry depuis Downtown · 35 min · vue spectaculaire skyline · île charmante · village · plages · déjeuner sur l'île · retour fin d'après-midi</div><div class="i-dur">Plus chill</div></div>
-      <span class="i-km">ferry</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Option B</span><div class="i-dot" style="background:var(--c-walk)"></div>
-      <div class="i-body"><div class="i-name">🌲 Discovery Park + Plage <span class="tag tfr">Gratuit</span></div><div class="i-desc">Plus grand parc de Seattle · 500 acres · trails · West Point Lighthouse · vue Puget Sound · Mount Rainier par temps clair</div></div>
-      <span class="i-km">~3 km</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Option C</span><div class="i-dot" style="background:var(--c-alert)"></div>
-      <div class="i-body"><div class="i-name">🏔️ Mount Rainier <span class="tag tal">Voiture requise</span></div><div class="i-desc">Excursion journée · 172 km · prairies fleuries · forêts anciennes · sommet enneigé</div><div class="i-dur">⚠️ Voiture de location nécessaire</div></div>
-      <span class="i-km">172 km</span>
-    </div>
-  </div>
-</div>
-
-<div class="day">
-  <div class="day-head">
-    <div>
-      <div class="day-date">Lundi 13 juillet · Départ</div>
-      <div class="day-title">Dernière matinée · Vol retour ✈️</div>
-      <div class="day-km">Arrivée Barcelone mar 14 jul</div>
-    </div>
-    <span class="day-badge b-flight">✈️ SEA → BCN</span>
-  </div>
-  <div class="day-body">
-    <div class="item">
-      <span class="i-time">Matin</span><div class="i-dot" style="background:var(--c-brunch)"></div>
-      <div class="i-body"><div class="i-name">🥐 Petit-déjeuner <span class="tag tbr">Café</span></div><div class="i-desc">Dernière matinée à Seattle avec Oriol &amp; Kelsie</div></div>
-      <span class="i-km">–</span>
-    </div>
-    <div class="item">
-      <span class="i-time">Midi</span><div class="i-dot" style="background:var(--c-trans)"></div>
-      <div class="i-body"><div class="i-name">🚆 Départ aéroport SEA-TAC <span class="tag ttt">Transfert</span></div><div class="i-desc">Link Light Rail → aéroport · arriver ~2h avant</div></div>
-      <span class="i-km">–</span>
-    </div>
-  </div>
-</div>
-
-<div class="t-box">
-  <div class="t-title">✈️ Retour Lun 13 juil · SEA → ORD → Barcelone</div>
-  <div class="t-step"><span class="t-time">13h55</span>Départ Seattle (SEA)</div>
-  <div class="t-step"><span class="t-time">20h31</span>Arrivée Chicago (ORD) · escale</div>
-  <div class="t-step"><span class="t-time">21h40</span>Départ Chicago (ORD)</div>
-  <div class="t-step"><span class="t-time">13h15</span>Arrivée Barcelone 🇪🇸 · mar 14 juil</div>
-  <div class="t-step"><span class="t-time">⚠️</span>Vol à réserver · ~17h porte-à-porte (escale ORD)</div>
-</div>
-
-</div>
-
-<div class="map-stick">
-  <div class="map-box">
-    <div class="map-title">🗺️ Carte Seattle interactive</div>
-    <div id="map-sea"></div>
-    <div class="map-legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--c-act)"></div>Activité</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-resto)"></div>Restaurant</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-brunch)"></div>Café</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-walk)"></div>Balade</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--c-match)"></div>Match</div>
-      <div class="leg"><span style="display:inline-block;width:16px;border-top:2px dashed var(--c-walk);"></span>Parcours à pied</div>
-    </div>
-  </div>
-</div>
-
-</div>
-</div></div>
-</div>
-
-<hr class="divider">
-
-<!-- RESA -->
-<div id="resa">
-<div class="wrap alt">
-<div class="inner" style="max-width:860px;">
-  <div class="sec-head">
-    <div class="sec-eye">À faire avant le départ</div>
-    <div class="sec-title">⚠️ Réservations urgentes</div>
-  </div>
-  <div class="alert-box">
-    <div class="alert-title">🗽 NEW YORK</div>
-    <div class="alert-item">🎷 Smoke Jazz → Set 20h dim 28 · smokejazz.com · ✅ réservation faite</div>
-    <div class="alert-item">🗽 Liberty Island → Tickets ✅</div>
-    <div class="alert-item">🦕 AMNH (Natural History) → ✅ réservation faite · lun 29</div>
-    <div class="alert-item">🎨 MoMA → ✅ réservation faite · lun 29</div>
-    <div class="alert-item">🦪 Grand Central Oyster Bar → ✅ réservation faite · lun 29 · LUN–VEN seulement</div>
-    <div class="alert-item">🎭 The Great Gatsby (Broadway Theatre) → réserver · jeu 2 jul</div>
-  </div>
-  <div class="alert-box chi">
-    <div class="alert-title">🌆 CHICAGO</div>
-    <div class="alert-item">🚤 Architecture Boat → MAINTENANT · sold out juillet!</div>
-    <div class="alert-item">🎨 Art Institute → réserver · ven 3 jul · fermé mar</div>
-    <div class="alert-item">🏛️ Frank Lloyd Wright → flwright.org · dim 5 jul</div>
-    <div class="alert-item">🚢 U-505 On-Board Tour → griffinmsi.org/tickets · sam 4 jul</div>
-    <div class="alert-item">🍽️ Girl &amp; the Goat / Duck Duck Goat / Au Cheval → Réserver</div>
-  </div>
-</div>
-</div>
-</div>
-
-<hr class="divider">
-
-<!-- RESTOS -->
-<div id="restos">
-<div class="wrap">
-<div class="inner" style="max-width:860px;">
-  <div class="sec-head">
-    <div class="sec-eye">Sélection @anaisraluy</div>
-    <div class="sec-title">🍽️ Restaurants par jour</div>
-  </div>
-  <div style="font-size:11px;color:var(--muted);margin:-2px 0 16px;line-height:1.7;">💲 Prix indicatif par personne · 🏛️ iconique · ✅ recommandé · ⭐ coup de cœur</div>
-  <div class="rgrid">
-    <div class="rc"><div class="rc-day">Sam 27 · Manhattan</div><div class="rc-title">Snacks (soir d'arrivée)</div><div class="rc-items">Snack: Tacombi — Tacos · sur le pouce · $15 ✅<br>Snack: Luke's Lobster — Seafood · sur le pouce · $20–25</div></div>
-    <div class="rc"><div class="rc-day">Dim 28 · Manhattan</div><div class="rc-title">Déj + Snacks + Jazz/Dîner</div><div class="rc-items">Déj: Katz's Delicatessen — Pastrami · depuis 1888 · $25–30 🏛️<br>Snack ~15h: Nom Wah Tea Parlor — Dim sum · Chinatown · $20–25 🏛️<br>Snack ~16h: Scarr's Pizza — Slice old school · $10 🏛️<br>🍷 Dîner 20h: Smoke Jazz — Jazz + dîner inclus · ~$100+ 🏛️<br>Dîner: Parcelle — Vin naturel · tapas · $30–50 ✅<br>Dîner: Wildair — Vin naturel · tapas · $30–50 ✅</div></div>
-    <div class="rc"><div class="rc-day">Lun 29 · Manhattan</div><div class="rc-title">Café + Déj + Dîner</div><div class="rc-items">Café: Levain Bakery — Cookie + café · UWS · $12 🏛️<br>Déj: Shake Shack — Burger · OG 2004 · Madison Sq · $15–20 🏛️<br>Déj: Momosan — Ramen rapide · $25–35<br>Déj: Keens — Steakhouse historique · $60–80 ✅<br>Dîner: Grand Central Oyster Bar — Huîtres · depuis 1913 · $50–80 🏛️<br>Dîner: Victor's Cafe — Cubain · live · $55–75 ✅<br>Dîner: Soothr — Asiatique trendy · $50–70 ✅<br>Dîner light: Momofuku Noodle Bar — Ramen · casual · $25–35 ✅</div></div>
-    <div class="rc"><div class="rc-day">Mar 30 · Manhattan</div><div class="rc-title">Café + Déj + Dîner</div><div class="rc-items">Café: Kaffe 1668 — Spécialité · Tribeca · $8–12 ✅<br>Déj: Xi'an Famous Foods — Noodles épicés · sur le pouce · $12 ✅<br>Déj: Kiki's — Grec · chill · $25–35 ✅<br>Déj: Macao Trading Co — Asiatique · cocktails · $35–50 ✅<br>Dîner: Tacombi Williamsburg — Tacos · match Mexique · $15–25 ✅</div></div>
-    <div class="rc"><div class="rc-day">Mer 1 · Brooklyn</div><div class="rc-title">Brunch + Déj + Dîner</div><div class="rc-items">Brunch: Sunday in Brooklyn ⭐ — Pancakes · $25–40 🏛️<br>Brunch: Cafe Mogador — Marocain · chill · $20–35 ✅<br>Brunch: Marlow &amp; Sons — Huîtres + vins · $30–45 ✅<br>Déj: Time Out Market DUMBO — Food hall · vue pont · $20–25 🏛️<br>Dîner: Salt + Charcoal — Japonais · cocktails · $45–65 ✅</div></div>
-    <div class="rc"><div class="rc-day">Jeu 2 · Manhattan</div><div class="rc-title">Petit-déj + Dîner</div><div class="rc-items">Petit-déj: The Bagel Store — Bagel & café · vue skyline · $8–12 ✅<br>Dîner: Sylvia's — Poulet frit & ribs · icône Harlem · $30–45 🏛️</div></div>
-    <div class="rc"><div class="rc-day">Ven 3 · Café BK</div><div class="rc-title">Café avant le vol</div><div class="rc-items">Café: Devocion — Meilleur café BK · verrière · $8–12 🏛️<br>Café: PPL — Café chill · $6–10 ✅</div></div>
-    <div class="rc"><div class="rc-day">Ven 3 · Chicago</div><div class="rc-title">Dîner Fulton Market</div><div class="rc-items">Dîner: Au Cheval — Burger légendaire Chicago · $50–70 🏛️<br>Dîner: Girl &amp; the Goat — Partage créatif · $65–90 ✅<br>Dîner: Rose Mary — Croate-Italien · Fulton · $60–85 ✅</div></div>
-    <div class="rc"><div class="rc-day">Sam 4 · Chicago</div><div class="rc-title">Déjeuner + Dîner</div><div class="rc-items">Déj: Portillo's — Hot-dog Chicago style · $12–15 🏛️<br>Déj: Beatnik On The River — Méditerranéen · vue rivière · $50–70 ✅<br>Dîner: Harley-Davidson Roadhouse — Hot-dog américain · rock live · vibes motard · $20–30 ✅</div></div>
-    <div class="rc"><div class="rc-day">Dim 5 · Chicago</div><div class="rc-title">Déj + Dîner</div><div class="rc-items">Déj: Pequod's Pizza — Première deep dish avec Albert · croûte caramélisée · $20–30 🏛️<br>Dîner: Izakaya Momotaro — Japonais · ambiance Tokyo · $45–65 ✅<br>Dîner: Beatnik On The River — Méditerranéen · rivière · $50–70 ✅<br>Dîner: The Loyalist — Burger · cocktails · $35–55 ✅</div></div>
-    <div class="rc"><div class="rc-day">Lun 6 · Chicago</div><div class="rc-title">Pause + Déj + Dîner</div><div class="rc-items">Pause: Palmer House · Brownie — Recette originale 1893 · $10–15 🏛️<br>Snack: Garrett Popcorn — Chicago Mix · icône Loop · $8–15 🏛️<br>Déj: Portillo's Italian Beef — « Dipped » · $12–15 🏛️<br>Déj: The Purple Pig — Méditerranéen · tapas · $35–50 ✅<br>Dîner: Duck Duck Goat — Chinois créatif · Fulton · $55–75 ✅<br>Dîner: Girl &amp; the Goat — Partage créatif · $65–90 ✅</div></div>
-    <div class="rc"><div class="rc-day">Mar 7 · Chicago</div><div class="rc-title">Snacks + Match + Blues</div><div class="rc-items">Snacks: Birria tacos Pilsen — Street food mexicain · $10–15 🏛️<br>Snacks: HaiSous — Vietnamien créatif · $30–45 ✅<br>Snacks: Dusek's — Bières craft · cocktails · $30–45 ✅<br>Match: Deep dish pizza pendant Argentine – Égypte 🍕⚽</div></div>
-    <div class="rc"><div class="rc-day">Mer 8 · Chicago</div><div class="rc-title">Déj + Blues</div><div class="rc-items">Déj: Miller's Pub — Ribs et steak · $30–50 🏛️<br>Soir: Buddy Guy's Legends — Jimmy Burns, Host the Jam · 21h · Soul food + blues live · $35–55 🏛️</div></div>
-  </div>
-</div>
-</div>
-</div>
-
-<footer>Barcelona → NYC → Brooklyn → Chicago → Seattle → Barcelona · Été 2026 · Bon voyage ! 🌍</footer>
-
-<script>
-/* ===== i18n FR (source) / EN / ES — translates ' · '-delimited segments by exact match ===== */
-const I18N={
-en:{
-"Guide de voyage personnel":"Personal travel guide","Été 2026":"Summer 2026","27 juin — 14 juillet 2026":"June 27 – July 14, 2026",
-"27 juin":"June 27","27 juin – 3 juil":"Jun 27 – Jul 3","3 – 9 juil":"Jul 3 – 9","9 – 13 juil":"Jul 9 – 13","14 juil":"Jul 14",
-"Nuits":"Nights","Villes":"Cities","km à pied":"km on foot",
-"⚠️ Réservations":"⚠️ Bookings","🍽️ Restos":"🍽️ Dining",
-"27 juin → 1 juillet":"June 27 → July 1","1 → 3 juillet":"July 1 → 3","3 → 9 juillet":"July 3 → 9","9 → 13 juillet":"July 9 → 13",
-"4 nuits":"4 nights","2 nuits":"2 nights","6 nuits":"6 nights","3 nuits":"3 nights",
-"~23 km totaux":"~23 km total","~8 km totaux":"~8 km total","~18 km totaux":"~18 km total",
-"🎂 anniversaire":"🎂 birthday","À faire avant le départ":"To do before departure","Sélection @anaisraluy":"Selection @anaisraluy",
-"⚠️ Réservations urgentes":"⚠️ Urgent bookings","🍽️ Restaurants par jour":"🍽️ Restaurants by day",
-"puis vol retour Barcelone (14 jul)":"then return flight to Barcelona (Jul 14)","Chez Albert (3–5 jul)":"Chez Albert (Jul 3–5)","Freehand (5–9 jul)":"Freehand (Jul 5–9)",
-"Samedi 27 juin":"Saturday, June 27","Dimanche 28 juin":"Sunday, June 28","Lundi 29 juin":"Monday, June 29","Mardi 30 juin":"Tuesday, June 30","Mercredi 1 juillet":"Wednesday, July 1","Jeudi 2 juillet":"Thursday, July 2","Vendredi 3 juillet":"Friday, July 3","Samedi 4 juillet 🚗":"Saturday, July 4 🚗","Dimanche 5 juillet 🚗":"Sunday, July 5 🚗","Lundi 6 juillet":"Monday, July 6","Mardi 7 juillet":"Tuesday, July 7","Mercredi 8 juillet":"Wednesday, July 8","Jeudi 9 juillet":"Thursday, July 9","Départ Seattle ✈️":"Seattle departure ✈️","Vendredi 10 juillet":"Friday, July 10","Samedi 11 juillet":"Saturday, July 11","Dimanche 12 juillet":"Sunday, July 12","Lundi 13 juillet":"Monday, July 13",
-"Départ":"Departure","Arrivée":"Arrival","Arrivée Seattle":"Seattle arrival",
-"Brooklyn à vélo 🚲":"Brooklyn by bike 🚲","Sunset Brooklyn Bridge":"Sunset Brooklyn Bridge","Dernier matin Brooklyn → Chicago ✈️":"Last morning Brooklyn → Chicago ✈️","4 Juillet 🎆":"July 4th 🎆","Vol Chicago → Seattle":"Flight Chicago → Seattle","2 options":"2 options","🇦🇷 Quart":"🇦🇷 Quarter-final","🎂 Anniversaire":"🎂 Birthday","Nature + Ferry":"Nature + Ferry","3 options 🌲":"3 options 🌲","Dernière matinée":"Last morning","Vol retour ✈️":"Return flight ✈️",
-"🇦🇷 Argentine 22h":"🇦🇷 Argentina 22h","🚲 Vélo":"🚲 Bike","Vol JFK → ORD":"Flight JFK → ORD","🚗 Voiture":"🚗 Car","Vol ORD → SEA":"Flight ORD → SEA","🇦🇷 Quart de finale":"🇦🇷 Quarter-final","✓ à valider avec O&K":"✓ to confirm with O&K",
-"🗺️ Carte NYC interactive":"🗺️ Interactive NYC map","🗺️ Carte Brooklyn interactive":"🗺️ Interactive Brooklyn map","🗺️ Carte Chicago interactive":"🗺️ Interactive Chicago map","🗺️ Carte Seattle interactive":"🗺️ Interactive Seattle map",
-"Bon voyage ! 🌍":"Have a great trip! 🌍",
-"Balade":"Walk","Déjeuner":"Lunch","Dîner":"Dinner","Musée":"Museum","option":"option","Option":"Option","Gratuit":"Free","Réserver!":"Book!","✅ Réservation faite":"✅ Booked","Petit-déj":"Breakfast","🥐 Petit-déjeuner inclus":"🥐 Breakfast included","Petit-déjeuner inclus":"Breakfast included","Disquaire":"Record shop","Hôtel":"Hotel","Transfert":"Transfer","Route":"Drive","Vue":"View","Film":"Film","Tour 90 min":"90-min tour","MAINTENANT!":"NOW!"
-},
-es:{
-"Guide de voyage personnel":"Guía de viaje personal","Été 2026":"Verano 2026","27 juin — 14 juillet 2026":"27 junio – 14 julio 2026",
-"27 juin":"27 jun","27 juin – 3 juil":"27 jun – 3 jul","3 – 9 juil":"3 – 9 jul","9 – 13 juil":"9 – 13 jul","14 juil":"14 jul",
-"Nuits":"Noches","Villes":"Ciudades","km à pied":"km a pie",
-"⚠️ Réservations":"⚠️ Reservas","🍽️ Restos":"🍽️ Comida",
-"27 juin → 1 juillet":"27 jun → 1 jul","1 → 3 juillet":"1 → 3 jul","3 → 9 juillet":"3 → 9 jul","9 → 13 juillet":"9 → 13 jul",
-"4 nuits":"4 noches","2 nuits":"2 noches","6 nuits":"6 noches","3 nuits":"3 noches",
-"~23 km totaux":"~23 km en total","~8 km totaux":"~8 km en total","~18 km totaux":"~18 km en total",
-"🎂 anniversaire":"🎂 cumpleaños","À faire avant le départ":"Por hacer antes de salir","Sélection @anaisraluy":"Selección @anaisraluy",
-"⚠️ Réservations urgentes":"⚠️ Reservas urgentes","🍽️ Restaurants par jour":"🍽️ Restaurantes por día",
-"puis vol retour Barcelone (14 jul)":"luego vuelo de regreso a Barcelona (14 jul)",
-"Samedi 27 juin":"Sábado 27 de junio","Dimanche 28 juin":"Domingo 28 de junio","Lundi 29 juin":"Lunes 29 de junio","Mardi 30 juin":"Martes 30 de junio","Mercredi 1 juillet":"Miércoles 1 de julio","Jeudi 2 juillet":"Jueves 2 de julio","Vendredi 3 juillet":"Viernes 3 de julio","Samedi 4 juillet 🚗":"Sábado 4 de julio 🚗","Dimanche 5 juillet 🚗":"Domingo 5 de julio 🚗","Lundi 6 juillet":"Lunes 6 de julio","Mardi 7 juillet":"Martes 7 de julio","Mercredi 8 juillet":"Miércoles 8 de julio","Jeudi 9 juillet":"Jueves 9 de julio","Départ Seattle ✈️":"Salida Seattle ✈️","Vendredi 10 juillet":"Viernes 10 de julio","Samedi 11 juillet":"Sábado 11 de julio","Dimanche 12 juillet":"Domingo 12 de julio","Lundi 13 juillet":"Lunes 13 de julio",
-"Départ":"Salida","Arrivée":"Llegada","Arrivée Seattle":"Llegada Seattle",
-"Brooklyn à vélo 🚲":"Brooklyn en bici 🚲","Sunset Brooklyn Bridge":"Atardecer en el puente de Brooklyn","Dernier matin Brooklyn → Chicago ✈️":"Última mañana Brooklyn → Chicago ✈️","4 Juillet 🎆":"4 de Julio 🎆","Vol Chicago → Seattle":"Vuelo Chicago → Seattle","2 options":"2 opciones","🇦🇷 Quart":"🇦🇷 Cuartos","🎂 Anniversaire":"🎂 Cumpleaños","Nature + Ferry":"Naturaleza + Ferry","3 options 🌲":"3 opciones 🌲","Dernière matinée":"Última mañana","Vol retour ✈️":"Vuelo de regreso ✈️",
-"🇦🇷 Argentine 22h":"🇦🇷 Argentina 22h","🚲 Vélo":"🚲 Bici","Vol JFK → ORD":"Vuelo JFK → ORD","🚗 Voiture":"🚗 Coche","Vol ORD → SEA":"Vuelo ORD → SEA","🇦🇷 Quart de finale":"🇦🇷 Cuartos de final","✓ à valider avec O&K":"✓ a confirmar con O&K",
-"🗺️ Carte NYC interactive":"🗺️ Mapa NYC interactivo","🗺️ Carte Brooklyn interactive":"🗺️ Mapa Brooklyn interactivo","🗺️ Carte Chicago interactive":"🗺️ Mapa Chicago interactivo","🗺️ Carte Seattle interactive":"🗺️ Mapa Seattle interactivo",
-"Bon voyage ! 🌍":"¡Buen viaje! 🌍",
-"Balade":"Paseo","Déjeuner":"Almuerzo","Dîner":"Cena","Musée":"Museo","option":"opción","Option":"Opción","Gratuit":"Gratis","Réserver!":"¡Reservar!","✅ Réservation faite":"✅ Reservado","Petit-déj":"Desayuno","🥐 Petit-déjeuner inclus":"🥐 Desayuno incluido","Petit-déjeuner inclus":"Desayuno incluido","Disquaire":"Tienda de discos","Hôtel":"Hotel","Transfert":"Traslado","Route":"Ruta","Vue":"Vista","Film":"Película","Tour 90 min":"Tour 90 min","MAINTENANT!":"¡AHORA!","Match ⚽":"Partido ⚽"
+// Map "city" toggles next to Carte — the trip spans a continent, so jump the map per city.
+const CITY_DEFS = [
+  { key: 'ny',  label: 'New York', min: -80,  max: -60 },
+  { key: 'chi', label: 'Chicago',  min: -100, max: -80 },
+  { key: 'sea', label: 'Seattle',  min: -130, max: -100 }
+];
+function cityCoords(key) {
+  const c = CITY_DEFS.find(x => x.key === key);
+  if (!c) return [];
+  const pts = [];
+  const inBand = lng => lng > c.min && lng <= c.max;
+  (TRIP.lodging || []).forEach(l => { if (l.lat && l.lng && inBand(l.lng)) pts.push([l.lat, l.lng]); });
+  DAYS.forEach(d => d.stops.forEach(s => { if (s.lat && s.lng && inBand(s.lng)) pts.push([s.lat, s.lng]); }));
+  RESTO_SETS.forEach(r => r.items.forEach(it => { if (it.lat && it.lng && inBand(it.lng)) pts.push([it.lat, it.lng]); }));
+  return pts;
 }
+function focusCity(key) {
+  if (!state.map) return;
+  const pts = cityCoords(key);
+  if (pts.length) state.map.fitBounds(pts, { padding: [40, 40], maxZoom: 14 });
+}
+// Which city a day belongs to (median longitude of its mapped stops).
+function dayCity(day) {
+  const xs = day.stops.filter(s => s.lng).map(s => s.lng).sort((a, b) => a - b);
+  if (!xs.length) return '';
+  const ml = xs[Math.floor(xs.length / 2)];
+  const c = CITY_DEFS.find(x => ml > x.min && ml <= x.max);
+  return c ? c.key : '';
+}
+function hotelCity(l) {
+  if (l.lat && l.lng) { const c = CITY_DEFS.find(x => l.lng > x.min && l.lng <= x.max); if (c) return c.key; }
+  const t = String((l.title && l.title.fr) || l.title || '').toLowerCase();
+  if (/seattle/.test(t)) return 'sea';
+  if (/chicago|romeoville|river north|freehand|albert/.test(t)) return 'chi';
+  return 'ny';
+}
+// Match a restaurant set to a day by the "<n> <month>" date token both carry.
+const dkey = str => { const m = String(str || '').toLowerCase().match(/(\d{1,2})\s+([a-zà-ÿ]{3,9})/); return m ? (m[1] + '|' + m[2].slice(0, 4)) : null; };
+function restoDay(r) { const k = dkey((r.title && r.title.fr) || r.title); if (!k) return -1; return DAYS.findIndex(d => dkey((d.date && d.date.fr) || d.date) === k); }
+
+/* ---------- helpers ---------- */
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const tr = o => (o && typeof o === 'object' && o[state.lang] !== undefined) ? o[state.lang] : o;
+// Colour each day by its city (coherent hue family per city, a lightness step per day within it),
+// so the legend and the map routes always share the same colour.
+const CITY_HUE = { ny: 212, chi: 20, sea: 150 };
+const dayColor = i => {
+  const key = dayCity(DAYS[i]);
+  const hue = CITY_HUE[key] != null ? CITY_HUE[key] : 265;
+  let pos = 0; for (let j = 0; j <= i; j++) if (dayCity(DAYS[j]) === key) pos++;
+  return 'hsl(' + hue + ',58%,' + Math.min(30 + (pos - 1) * 7, 60) + '%)';
 };
-(function(){
-  var NODES=null;
-  function collect(){
-    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
-      if(!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
-      var p=n.parentElement;
-      if(!p||p.closest('#langsel,script,style,.leaflet-container'))return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    }});
-    var a=[],n;while(n=w.nextNode())a.push({n:n,fr:n.nodeValue});return a;
-  }
-  function apply(lang){
-    if(!NODES)NODES=collect();
-    var d=lang==='fr'?null:I18N[lang];
-    NODES.forEach(function(o){
-      if(!d){o.n.nodeValue=o.fr;return;}
-      o.n.nodeValue=o.fr.split(' · ').map(function(s){
-        var t=s.trim();if(!t)return s;
-        var v=d[t];return v===undefined?s:s.replace(t,v);
-      }).join(' · ');
-    });
-    document.documentElement.lang=lang;
-    try{localStorage.setItem('lang',lang);}catch(e){}
-    var bs=document.querySelectorAll('#langsel button');
-    for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i].getAttribute('data-l')===lang);
-  }
-  function init(){
-    var bs=document.querySelectorAll('#langsel button');
-    for(var i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){apply(this.getAttribute('data-l'));});
-    var saved='fr';try{saved=localStorage.getItem('lang')||'fr';}catch(e){}
-    apply(saved);
-  }
-  if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
-})();
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script>
-function pin(c){return L.divIcon({html:`<div class="pindot" style="width:13px;height:13px;border-radius:50%;background:${c};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);"></div>`,className:'',iconSize:[13,13],iconAnchor:[6.5,6.5]});}
-function hpin(c){return L.divIcon({html:`<div style="width:24px;height:24px;border-radius:50%;background:#fff;border:2.5px solid ${c};box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;">🏠</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});}
-function pop(name,type,desc,addr){
-  const C={'act':'#2a4f8a','resto':'#b8620b','brunch':'#1e7a52','bar':'#7a2a8a','walk':'#2e7a3e','passby':'#888','match':'#1e7a3e','jazz':'#a83060','hotel':'#6a4e1e','concert':'#5a3a8a'};
-  const L={'act':'Activité','resto':'Restaurant','brunch':'Brunch/Café','bar':'Bar','walk':'Balade','passby':'Pass by','match':'Événement','jazz':'Jazz','hotel':'Hôtel','concert':'Concert'};
-  const cl=C[type]||'#666';const lb=L[type]||type;
-  return `<div class="pop-name">${name}</div><span class="pop-tag" style="background:${cl}18;color:${cl};border:1px solid ${cl}40;">${lb}</span><div class="pop-desc" style="margin-top:6px;">${desc}</div><div class="pop-addr">📍 ${addr}</div>`;
+const bg = (src, fill) => (fill ? '' : 'position:absolute;inset:0;') +
+  'width:100%;height:100%;background:#e6e2d8' + (src ? ' url("' + src + '") center/cover no-repeat' : '') +
+  ';filter:grayscale(1) contrast(1.06);';
+const heroStyle = fill => bg(state.hero && state.hero.src ? state.hero.src : '', fill);
+const photoStyle = (key, fill) => { const img = state.imgs[key]; return bg(img && img.src ? img.src : '', fill); };
+const pill = a => 'font-family:Archivo,sans-serif;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;padding:7px 12px;cursor:pointer;border:1px solid ' +
+  (a ? '#1a1a18' : '#cfc9bd') + ';background:' + (a ? '#1a1a18' : 'transparent') + ';color:' + (a ? '#f4f1ea' : '#57534b') + ';';
+const tabBtn = a => 'font-family:Archivo,sans-serif;background:none;border:none;border-bottom:2px solid ' +
+  (a ? '#8a4b3a' : 'transparent') + ';color:' + (a ? '#1a1a18' : '#7a756c') + ';padding:16px 22px;cursor:pointer;text-transform:uppercase;text-align:left;';
+const cityTab = a => 'font-family:Archivo,sans-serif;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;padding:12px 22px;cursor:pointer;border:1px solid ' +
+  (a ? '#1a1a18' : '#cfc9bd') + ';background:' + (a ? '#1a1a18' : 'transparent') + ';color:' + (a ? '#f4f1ea' : '#57534b') + ';';
+const HDR = 'font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #1a1a18;padding-bottom:0.45em;margin-bottom:1.1em;display:flex;justify-content:space-between;';
+const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out.length ? out : [[]]; };
+const pp = h => (h && /[£$€]/.test(h)) ? h + ' pp' : (h || '');   // mark prices as per-person
+// Category → Tabler icon, matched on the stop's kind (works for FR/EN/ES labels).
+function kindIcon(kind) {
+  const k = String(kind || '').toLowerCase();
+  if (/mus[ée]e|galer|museum|museo/.test(k)) return 'ti-building-bank';
+  if (/monument|cath|église|iglesia|landmark|\bsite\b|monumento|palais|palace/.test(k)) return 'ti-building-monument';
+  if (/balade|marche|promenade|walk|paseo/.test(k)) return 'ti-walk';
+  if (/caf[ée]|petit|breakfast|desayuno|coffee/.test(k)) return 'ti-coffee';
+  if (/d[ée]jeuner|d[îi]ner|repas|lunch|dinner|snack|almuerzo|cena|comer/.test(k)) return 'ti-tools-kitchen-2';
+  if (/vol|flight|vuelo|a[ée]roport|airport/.test(k)) return 'ti-plane';
+  if (/bateau|boat|ferry|barco|croisi|navette/.test(k)) return 'ti-sailboat';
+  if (/trajet|transit|m[ée]tro|train|d[ée]part|arriv|salida|llegada|transporte/.test(k)) return 'ti-train';
+  if (/soir[ée]e|spectacle|match|blues|jazz|concert|show|night|noche|partido/.test(k)) return 'ti-music';
+  if (/insolite|curiosit|passage|belv|viewpoint|vue|mirador/.test(k)) return 'ti-star';
+  return 'ti-map-pin';
 }
-function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');}
-function flash(el){el.classList.remove('hl');void el.offsetWidth;el.classList.add('hl');}
-function makeMap(id,lat,lng,zm,pts,routes){
-  const m=L.map(id,{center:[lat,lng],zoom:zm,zoomControl:false,scrollWheelZoom:false});
-  m.on('focus',()=>m.scrollWheelZoom.enable());m.on('blur',()=>m.scrollWheelZoom.disable());
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(m);
-  L.control.zoom({position:'bottomright'}).addTo(m);
-  (routes||[]).forEach(r=>L.polyline(r.p,{color:r.c,weight:r.w||3,opacity:.6,dashArray:r.d||null,lineJoin:'round'}).addTo(m));
-  const sec=document.getElementById(id.replace('map-',''));
-  const items=sec?[...sec.querySelectorAll('.item,.ws')]:[];
-  const allItems=[...document.querySelectorAll('.item,.ws')];
-  pts.forEach(p=>{
-    const mk=L.marker([p[0],p[1]],{icon:p[4]==='hotel'?hpin(p[3]):pin(p[3])}).addTo(m).bindPopup(pop(p[2],p[4],p[5],p[6]),{maxWidth:240});
-    const key=norm(p[2]);
-    const item=key.length>=4?(items.find(el=>norm(el.textContent).includes(key))||allItems.find(el=>norm(el.textContent).includes(key))):null;
-    if(item){
-      mk.on('click',()=>{item.scrollIntoView({behavior:'smooth',block:'center'});flash(item);});
-      if(!item.dataset.linked){
-        item.dataset.linked='1';item.style.cursor='pointer';item.title='📍 Voir sur la carte';
-        item.addEventListener('click',()=>{
-          m.flyTo([p[0],p[1]],15,{duration:.6});
-          setTimeout(()=>mk.openPopup(),620);
-          if(window.innerWidth<=940)document.getElementById(id).scrollIntoView({behavior:'smooth',block:'center'});
-          const dot=mk.getElement()&&mk.getElement().querySelector('.pindot');
-          if(dot){dot.classList.remove('pulse');void dot.offsetWidth;dot.classList.add('pulse');}
-        });
-      }
-    }
+// Day-stop marker: coloured disc (day) + category icon + small order badge.
+const stopPin = (color, icon, n) => L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+  html: '<div style="position:relative;width:24px;height:24px;border-radius:50%;background:' + color + ';border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;">' +
+    '<i class="ti ' + icon + '" style="font-size:14px;line-height:1;"></i>' +
+    '<span style="position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:#f4f1ea;color:#1a1a18;border:1px solid #1a1a18;font:600 9px Archivo,sans-serif;display:flex;align-items:center;justify-content:center;box-sizing:border-box;">' + n + '</span>' +
+  '</div>' });
+// Selected day stays in colour; the other days fade to grey.
+const MAP_GREY = '#b7b1a5';
+function highlightDay(sel) {
+  (state.mapDays || []).forEach((md, di) => {
+    const on = (sel == null) || di === sel;
+    const col = on ? md.color : MAP_GREY;
+    if (md.line) md.line.setStyle({ color: col, opacity: on ? 0.85 : 0.22, weight: on ? 2.5 : 1.5 });
+    md.markers.forEach(mk => { mk.marker.setIcon(stopPin(col, mk.icon, mk.n)); mk.marker.setOpacity(on ? 1 : 0.5); mk.marker.setZIndexOffset(on ? 600 : 0); });
   });
-  return m;
+}
+const AIRPORT_RE = /a[eé]roport|airport|gatwick|heathrow|\bjfk\b|o'?hare|sea[- ]?tac|newark|laguardia|midway|el prat|\bord\b|\bewr\b|\blga\b/i;
+const isAirport = s => /^(vol|flight|vuelo)$/i.test(String(tr(s.kind) || '').trim()) || AIRPORT_RE.test(String(tr(s.name) || ''));
+
+/* ---------- static B&W tile map (print) ---------- */
+function tileMap(stops, w, h, tz) {
+  const lat2y = (lat, z) => (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z) * 256;
+  const lng2x = (lng, z) => (lng + 180) / 360 * Math.pow(2, z) * 256;
+  let pts = stops.map((s, i) => ({ lat: s.lat, lng: s.lng, n: i + 1 })).filter(s => s.lat);
+  if (!pts.length) return { tiles: [], dots: [] };
+  const med = arr => arr.slice().sort((a, b) => a - b)[Math.floor(arr.length / 2)];
+  const mLat = med(pts.map(p => p.lat)), mLng = med(pts.map(p => p.lng));
+  const inner = pts.filter(p => Math.abs(p.lat - mLat) < 0.09 && Math.abs(p.lng - mLng) < 0.16);
+  if (inner.length >= 2) pts = inner;
+  let z = tz;
+  const minLat = Math.min(...pts.map(p => p.lat)), maxLat = Math.max(...pts.map(p => p.lat));
+  const minLng = Math.min(...pts.map(p => p.lng)), maxLng = Math.max(...pts.map(p => p.lng));
+  while (z > 8) {
+    const dx = lng2x(maxLng, z) - lng2x(minLng, z), dy = lat2y(minLat, z) - lat2y(maxLat, z);
+    if (dx < w * 0.82 && dy < h * 0.82) break;
+    z--;
+  }
+  const cx = lng2x((minLng + maxLng) / 2, z), cy = lat2y((minLat + maxLat) / 2, z);
+  const originX = cx - w / 2, originY = cy - h / 2;
+  const tiles = [];
+  const tx0 = Math.floor(originX / 256), ty0 = Math.floor(originY / 256);
+  const tx1 = Math.floor((originX + w) / 256), ty1 = Math.floor((originY + h) / 256);
+  for (let ty = ty0; ty <= ty1; ty++) {
+    for (let tx = tx0; tx <= tx1; tx++) {
+      tiles.push({
+        style: 'position:absolute;display:block;width:256px;height:256px;left:' + (tx * 256 - originX) + 'px;top:' + (ty * 256 - originY) + 'px;' +
+          'background:url("https://a.basemaps.cartocdn.com/light_all/' + z + '/' + tx + '/' + ty + '@2x.png") center/256px 256px no-repeat;filter:grayscale(1) contrast(1.05);'
+      });
+    }
+  }
+  const dots = pts.map(p => ({
+    n: p.n,
+    style: 'position:absolute;left:' + (lng2x(p.lng, z) - originX) + 'px;top:' + (lat2y(p.lat, z) - originY) + 'px;transform:translate(-50%,-50%);width:15px;height:15px;border-radius:50%;background:#1a1a18;color:#fff;font:600 9px Archivo,sans-serif;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;'
+  }));
+  return { tiles, dots };
 }
 
-const NYC=[
-  [40.7516,-73.9755,'Chrysler Building','#2a4f8a','act','Gratte-ciel Art Déco · lobby + façade','405 Lexington Ave'],
-  [40.7146,-73.9979,'Nom Wah Tea Parlor','#b8620b','resto','Dim sum depuis 1920 · Chinatown','13 Doyers St'],
-  [40.7223,-73.9874,"Katz's Delicatessen",'#b8620b','resto','Pastrami depuis 1888 · LES','205 E Houston St'],
-  [40.7480,-74.0048,'High Line','#2e7a3e','walk','Parc suspendu · 2.3 km','Gansevoort St, Manhattan'],
-  [40.7579,-73.9855,'Times Square','#1e7a3e','match','Match Argentine 22h · Écrans','Times Square, NY'],
-  [40.8011,-73.9682,'Smoke Jazz','#a83060','jazz','Dîner + Jazz 20h · ~$100+/pp','2751 Broadway, UWS'],
-  [40.7402,-74.0093,'Whitney Museum','#2a4f8a','act','Whitney Biennial 2026 · $30/pp','99 Gansevoort St'],
-  [40.7111,-74.0131,'9/11 Memorial','#888','passby','Pass by · Gratuit','180 Greenwich St'],
-  [40.7130,-74.0137,'One World Observatory','#888','passby','Pass by · Tour Freedom','285 Fulton St'],
-  [40.7069,-74.0089,'Wall Street','#2a4f8a','act','Charging Bull · 30 min','Wall Street, NYC'],
-  [40.7781,-73.9736,'The Metropolitan Museum','#888','passby','Pass by · Façade','1000 5th Ave, UES'],
-  [40.7829,-73.9590,'Guggenheim','#888','passby','Pass by · Spirale FLW','1071 5th Ave, UES'],
-  [40.7814,-73.9741,'Upper East Side','#2a4f8a','act','Museum Mile · 30 min','5th Ave, UES'],
-  [40.7812,-73.9734,'AMNH','#2a4f8a','act','Dinosaures · $28/pp · 2h','200 Central Park W'],
-  [40.7812,-73.9665,'Central Park','#2e7a3e','walk','Bethesda · Bow Bridge · 2 km','Central Park, NYC'],
-  [40.7484,-73.9967,'NY Public Library','#888','passby','Pass by · Lions','5th Ave & 42nd St'],
-  [40.7484,-73.9856,'Empire State Building','#888','passby','Pass by · Art Déco 1931','350 5th Ave'],
-  [40.7411,-73.9897,'Flatiron Building','#888','passby','Pass by · Triangulaire 1902','175 5th Ave'],
-  [40.7614,-73.9776,'MoMA','#2a4f8a','act','Van Gogh · Monet · $30/pp','11 W 53rd St'],
-  [40.7588,-73.9787,'Rockefeller Center','#2a4f8a','act','Art Déco · Atlas · 30 min','30 Rockefeller Plaza'],
-  [40.7527,-73.9772,'Grand Central','#2a4f8a','act','Beaux-Arts · 30 min','89 E 42nd St'],
-  [40.6892,-74.0445,'Liberty Island','#2a4f8a','act','Ferry · 4h','Battery Park'],
-  [40.7459,-73.9975,'Interfaith 21 🏠','#6a4e1e','hotel','B&B ⭐4.9','246 W 21st St, Chelsea'],
-  [40.7507,-73.9843,'Oyster Bar','#b8620b','resto','Huîtres · LUN–VEN · Réserver!','89 E 42nd St, Lower Level'],
-  [40.7271,-74.0028,'Shuka','#b8620b','resto','Méditerranéen · SoHo','38 MacDougal St'],
-  [40.7163,-73.9942,'Parcelle','#7a2a8a','bar','Vin naturel · Dimes Square','135 Division St, LES'],
-  [40.7200,-73.9891,'Wildair','#7a2a8a','bar','Vin naturel · Tapas','142 Orchard St, LES'],
-  [40.7135,-74.0082,'Kaffe 1668','#1e7a52','brunch','Café avant ferry','275 Greenwich St'],
-  [40.7780,-73.9827,'Levain Bakery','#1e7a52','brunch','Cookies','167 W 74th St, UWS'],
-  [40.7536,-74.0022,'Vessel — Hudson Yards','#2a4f8a','act','154 escaliers · sculpture Heatherwick · gratuit','Hudson Yards Plaza, W 34th St'],
-  [40.7308,-73.9973,'Washington Square Park','#2e7a3e','walk','Arche 1892 · fontaine · chess tables · Greenwich Village','Washington Square North'],
-  [40.7332,-74.0040,'West Village','#2e7a3e','walk','Bleecker St · Commerce St · Perry St · brownstones','Bleecker St & W 10th St'],
-  [40.7428,-73.9877,'Madison Square Park','#2e7a3e','walk','Vue Flatiron · Shake Shack OG · Gratuit','11 Madison Ave'],
-  [40.7141,-73.9558,'Tacombi Williamsburg','#b8620b','resto','Tacos · match Mexique','242 Metropolitan Ave, Brooklyn'],
-];
+/* ---------- derive view model from state ---------- */
+function derive() {
+  const ui = UI[state.lang];
+  const isPP = state.fmt === 'pp';
+  const mw = isPP ? 300 : 600, mh = isPP ? 170 : 352;
 
-const BK=[
-  [40.7141,-73.9527,'Pod Brooklyn 🏠','#6a4e1e','hotel','Williamsburg · vélos gratuits · code PODPAL -10%','247 Metropolitan Ave'],
-  [40.7148,-73.9678,'Domino Park','#2e7a3e','walk','Vue Manhattan · Gratuit','15 River St, Williamsburg'],
-  [40.7061,-73.9969,'Brooklyn Bridge','#2a4f8a','act','Traversée 1.8 km · Icône','Brooklyn Bridge, NY'],
-  [40.7024,-73.9923,'DUMBO','#2a4f8a','act','Washington St · Photo','DUMBO, Brooklyn'],
-  [40.7214,-73.9570,'Brooklyn Brewery','#2a4f8a','act','Brasserie icône · Gratuit','79 N 11th St'],
-  [40.7142,-73.9653,'Sunday in Brooklyn ⭐','#1e7a52','brunch','Pancakes','348 Wythe Ave'],
-  [40.7197,-73.9600,'Cafe Mogador','#1e7a52','brunch','Marocain','133 Wythe Ave'],
-  [40.7148,-73.9220,'Devocion','#1e7a52','brunch','Meilleur café BK','148 Grand St'],
-  [40.7031,-73.9920,'Time Out Market','#b8620b','resto','Food hall DUMBO','55 Water St'],
-  [40.7141,-73.9558,'The Bagel Store','#1e7a52','brunch','Bagel & café · vue skyline via Domino Park','191 N 9th St, Williamsburg'],
-  [40.7048,-73.9571,'Quartier hassidique de Williamsburg','#2e7a3e','walk','South Williamsburg · Lee Ave & Division Ave','Lee Ave, Brooklyn'],
-  [40.7139,-73.9563,'Salt + Charcoal','#b8620b','resto','Japonais · cocktails','171 Grand St'],
-  [40.7794,-73.9632,'The Met','#2a4f8a','act','Metropolitan Museum of Art · visite complète','1000 5th Ave, UES'],
-  [40.8116,-73.9465,'Harlem','#2e7a3e','walk','Apollo Theater · 125th St · Malcolm X Blvd','Harlem, Manhattan'],
-  [40.8095,-73.9455,"Sylvia's",'#b8620b','resto','Poulet frit & ribs · icône Harlem','328 Malcolm X Blvd'],
-  [40.7615,-73.9838,'Broadway Theatre','#5a3a8a','concert','The Great Gatsby · comédie musicale','1681 Broadway'],
-];
+  // Global ref numbering across all days (stable, shared by screen + booklet).
+  let refN = 0; const refOf = new Map();
+  DAYS.forEach(day => day.stops.forEach(s => { if (s.note) { refN++; refOf.set(s, String(refN).padStart(2, '0')); } }));
 
-const CHI=[
-  [41.9137,-87.7177,'The 606 Trail','#2e7a3e','walk','Voie ferrée surélevée · 4.3 km','Bloomingdale Ave & N Ridgeway'],
-  [41.9698,-87.6595,'Green Mill','#a83060','jazz','Speakeasy Al Capone · jazz · cash only · sans résa','4802 N Broadway'],
-  [41.9078,-87.6676,'Reckless Records Wicker Park','#2a4f8a','act','Disquaire culte · vinyles · 7j/7','1379 N Milwaukee Ave'],
-  [41.8819,-87.6270,'Reckless Records Loop','#2a4f8a','act','Disquaire · à 3 min du Palmer House','26 E Madison St'],
-  [41.8905,-87.6240,'Billy Goat Tavern','#7a5230','bar','« Cheezborger! » · taverne culte sous Michigan Ave','430 N Michigan Ave (lower)'],
-  [41.8846,-87.6256,'Intelligentsia Coffee','#5a3a2a','act','Torréfacteur emblématique · face à Millennium Park','53 E Randolph St'],
-  [41.8902,-87.6340,'Lou Malnati\'s','#c0392b','act','Deep dish légendaire de Chicago','439 N Wells St'],
-  [41.9128,-87.6385,'Twin Anchors','#8a4030','bar','Ribs cultes · repaire de Sinatra','1655 N Sedgwick St'],
-  [41.9092,-87.6772,'The Violet Hour','#7a3060','bar','Bar à cocktails speakeasy primé','1520 N Damen Ave'],
-  [41.8907,-87.6312,'XOCO','#d68910','act','Rick Bayless · mexicain casual','449 N Clark St'],
-  [41.9221,-87.6628,'Pequod\'s Pizza','#c0392b','act','Deep dish à croûte caramélisée · emblématique','2207 N Clybourn Ave'],
-  [41.8826,-87.6233,'The Bean','#2e7a3e','walk','Sculpture miroir · Photo!','Millennium Park'],
-  [41.8798,-87.6235,'Art Institute','#2a4f8a','act','Seurat · Monet · $26/pp','111 S Michigan Ave'],
-  [41.6532,-87.0524,'Indiana Dunes','#2a4f8a','act','Trail 9 + baignade · $20','Porter, IN'],
-  [41.8917,-87.6086,'Navy Pier 🎆','#1e7a3e','match','Feux 4 juillet · ~21h30','600 E Grand Ave'],
-  [41.8927,-87.6313,'Portillo\'s','#b8620b','resto','Hot-dog · Italian Beef · icône','100 W Ontario St'],
-  [41.7912,-87.5812,'Museum of Science & Industry','#2a4f8a','act','Sous-marin WWII · Ferme 16h','5700 S DuSable Lake Shore Dr'],
-  [41.8937,-87.7997,'Frank Lloyd Wright','#2a4f8a','act','UNESCO · $22/pp','951 Chicago Ave, Oak Park'],
-  [41.8946,-87.7936,'Maisons Wright — Oak Park','#2a4f8a','walk','Thomas · Heurtley · Gale · Furbeck · Moore House','Forest Ave, Oak Park'],
-  [41.8534,-87.6235,'Chess Records','#a83060','jazz','Studio légendaire · berceau du Chicago blues','2120 S Michigan Ave'],
-  [41.8813,-87.6259,'Miller\'s Pub','#b8620b','resto','Ribs et steak','134 S Wabash Ave'],
-  [41.8735,-87.6244,'MoCP','#2a4f8a','act','Stephen Shore · Henri Cartier-Bresson · Gratuit','600 S Michigan Ave'],
-  [41.9469,-87.8073,'Harley-Davidson Roadhouse','#b8620b','resto','Hot-dog américain · rock live · vibes motard','3057 N Harlem Ave'],
-  [41.8757,-87.6189,'Buckingham Fountain','#2e7a3e','walk','Versailles · Gratuit','301 S Columbus Dr'],
-  [41.8838,-87.6250,'Cultural Center','#2a4f8a','act','Dômes Tiffany · Gratuit','78 E Washington St'],
-  [41.8792,-87.6318,'Rookery Building','#2a4f8a','act','Cour FLW · Gratuit','209 S LaSalle St'],
-  [41.8831,-87.6219,'Jay Pritzker Pavilion','#5a3a8a','concert','Rachmaninov 3 jul · Ratatouille 7 jul · Sibelius 8 jul','201 E Randolph St'],
-  [41.8858,-87.6775,'Wicker Park','#2e7a3e','walk','Bohème · Myopic Books','291 N Milwaukee Ave'],
-  [41.9031,-87.6708,'Bordel Chicago','#7a2a8a','bar','Speakeasy · Burlesque','1721 W Division St'],
-  [41.8579,-87.6598,'National Museum Mexican Art','#2a4f8a','act','Gratuit · Murales','1852 W 19th St'],
-  [41.8885,-87.6241,'Architecture Boat','#2a4f8a','act','$50/pp · 90 min · RÉSERVER!','Chicago Riverwalk'],
-  [41.9484,-87.6554,'Gallagher Way','#6a2a8a','match','Matilda 8 jul · Gates 18h','3635 N Clark St'],
-  [41.8846,-87.6476,'Au Cheval','#b8620b','resto','Burger · Réserver!','800 W Randolph St'],
-  [41.8841,-87.6479,'Girl & the Goat','#b8620b','resto','Réserver absolument!','809 W Randolph St'],
-  [41.8864,-87.6497,'Duck Duck Goat','#b8620b','resto','Chinois créatif · Fulton','857 W Fulton Market'],
-  [41.8730,-87.6262,'Buddy Guy\'s','#7a2a8a','bar','Blues live · Soul food','700 S Wabash Ave'],
-  [41.8920,-87.6315,'Blue Chicago','#7a2a8a','bar','Blues live','536 N Clark St'],
-  [41.8579,-87.6534,'HaiSous','#b8620b','resto','Vietnamien · Pilsen','1800 S Carpenter St'],
-  [41.8661,-87.6230,'Giordano\'s','#b8620b','resto','Deep dish pizza','1340 S Michigan Ave'],
-  [41.8885,-87.6267,'Freehand 🏠','#6a4e1e','hotel','19 E Ohio St · River North','19 E Ohio St'],
-  [41.6263,-88.0853,'Chez Albert 🏠','#6a4e1e','hotel','Logement 3–5 juil · Romeoville (sud-ouest)','MV3J+268 Romeoville, IL'],
-  [41.8847,-87.6280,'Garrett Popcorn','#b8620b','resto','Chicago Mix · icône Loop','26 W Randolph St'],
-];
+  const parseNote = txt => txt.split('\n').map(line => {
+    const mm = line.match(/^([^:]{3,40}?)\s:\s([\s\S]+)$/);
+    return mm ? { label: mm[1], body: mm[2] } : { label: '', body: line };
+  });
+  const notesForDay = day => {
+    const out = [];
+    day.stops.forEach(s => {
+      if (s.note) {
+        const ref = refOf.get(s);
+        out.push({ ref, id: 'note-' + ref, stopId: 'stop-' + ref, name: tr(s.name), lat: s.lat, lng: s.lng, parts: parseNote(tr(s.note)) });
+      }
+    });
+    return out;
+  };
 
-const SEA=[
-  [47.6097,-122.3422,'Pike Place Market','#2e7a3e','walk','Poissons volants · fleurs · dès 8h','85 Pike St'],
-  [47.6101,-122.3425,'Original Starbucks','#1e7a52','brunch','1er Starbucks du monde · 1912','1912 Pike Pl'],
-  [47.6062,-122.3417,'Seattle Waterfront','#2e7a3e','walk','Vue Puget Sound · Olympic Mtns','Alaskan Way'],
-  [47.6055,-122.3425,'Seattle Great Wheel','#2a4f8a','act','~$16/pp · vue panoramique','Pier 57'],
-  [47.6206,-122.3504,'Chihuly Garden and Glass','#2a4f8a','act','~$32/pp · sculptures verre','305 Harrison St'],
-  [47.6215,-122.3481,'Museum of Pop Culture (MoPOP)','#2a4f8a','act','~$32/pp · Nirvana · Hendrix','325 5th Ave N'],
-  [47.6205,-122.3493,'Space Needle','#2a4f8a','act','Icône Seattle','400 Broad St'],
-  [47.6219,-122.3517,'Seattle Center','#1e7a3e','match','Fan zone Quart 🇦🇷','305 Harrison St'],
-  [47.6295,-122.3599,'Kerry Park','#2e7a3e','walk','Vue skyline + Space Needle · Gratuit','211 W Highland Dr'],
-  [47.6253,-122.3222,'Capitol Hill','#b8620b','resto','Dîner · quartier vivant','Capitol Hill'],
-  [47.6026,-122.3393,'Bainbridge Island','#2a4f8a','act','Ferry 35 min · gratuit ORCA','Colman Dock'],
-  [47.6580,-122.4060,'Discovery Park','#2e7a3e','walk','500 acres · West Point Lighthouse','3801 Discovery Park Blvd'],
-];
+  const days = DAYS.map((day, i) => {
+    const m = tileMap(day.stops, mw, mh, 14);
+    const stops = day.stops.map((s, j) => ({ i: j + 1, time: s.time, kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc) }));
+    const notes = notesForDay(day);
+    return {
+      num: 'Jour ' + String(i + 1).padStart(2, '0'),
+      date: tr(day.date), title: tr(day.title), lede: tr(day.lede), photoCap: tr(day.photoCap), photo: day.photo,
+      stops,
+      stopPages: chunk(stops, isPP ? 6 : 12).map((g, gi) => ({ cont: gi > 0 ? '(suite)' : '', stops: g })),
+      notes,
+      culturePages: notes.length ? chunk(notes, isPP ? 2 : 5).map((g, gi) => ({ cont: gi > 0 ? '(suite)' : '', notes: g })) : [],
+      tiles: m.tiles, dots: m.dots
+    };
+  });
 
-// Parcours indicatifs (balades à pied / boucle à vélo)
-const NYC_R=[
-  {c:'#2e7a3e',d:'4,7',p:[[40.7459,-73.9975],[40.7411,-73.9897],[40.7308,-73.9973],[40.7332,-74.0040],[40.7235,-74.0005],[40.7158,-73.9975],[40.7111,-74.0131],[40.7069,-74.0089],[40.7163,-73.9942]]},
-  {c:'#7a2a8a',d:'4,7',p:[[40.7780,-73.9827],[40.7781,-73.9736],[40.7829,-73.9590],[40.7814,-73.9700],[40.7812,-73.9665],[40.7484,-73.9967],[40.7484,-73.9856],[40.7411,-73.9897],[40.7614,-73.9776],[40.7588,-73.9787],[40.7527,-73.9772]]},
-];
-const BK_R=[
-  {c:'#c0392b',w:4,p:[[40.7148,-73.9678],[40.7106,-73.9665],[40.7140,-73.9745],[40.7185,-73.9888],[40.7110,-74.0040],[40.7061,-73.9969],[40.7024,-73.9923],[40.6960,-73.9955],[40.6995,-73.9985],[40.7090,-73.9690],[40.7180,-73.9568]]},
-];
-const CHI_R=[
-  {c:'#2a4f8a',d:'4,7',p:[[41.8826,-87.6233],[41.8798,-87.6235],[41.8846,-87.6476]]},
-  {c:'#2e7a3e',d:'4,7',p:[[41.8757,-87.6189],[41.8838,-87.6250],[41.8887,-87.6247],[41.8856,-87.6278],[41.8763,-87.6281],[41.8840,-87.6303],[41.8792,-87.6318],[41.8789,-87.6359],[41.8814,-87.6240],[41.8826,-87.6233]]},
-  {c:'#7a2a8a',d:'4,7',p:[[41.8579,-87.6598],[41.8885,-87.6241],[41.8730,-87.6262]]},
-];
-const SEA_R=[
-  {c:'#2e7a3e',d:'4,7',p:[[47.6097,-122.3422],[47.6062,-122.3417],[47.6055,-122.3425],[47.6206,-122.3504],[47.6295,-122.3599],[47.6253,-122.3222]]},
-];
-window.addEventListener('load',()=>{
-  makeMap('map-nyc',40.748,-73.990,13,NYC,NYC_R);
-  makeMap('map-bk',40.714,-73.957,13,BK,BK_R);
-  makeMap('map-chi',41.882,-87.630,12,CHI,CHI_R);
-  makeMap('map-sea',47.618,-122.345,12,SEA,SEA_R);
+  const cur = DAYS[state.day];
+  const curStops = cur.stops.map(s => {
+    const ref = refOf.get(s) || '';
+    return { time: s.time, tag: s.tag || '', kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc), lat: s.lat, lng: s.lng, ref, href: ref ? '#note-' + ref : '' };
+  });
+
+  // lodging is an ARRAY (one entry per city/hotel); tag each with its city.
+  const hotelsAll = (TRIP.lodging || []).map(l => ({ title: tr(l.title), address: l.address || '', note: tr(l.note) || '', city: hotelCity(l) }));
+  const restosAll = RESTO_SETS.map(r => ({ title: tr(r.title), note: tr(r.note), day: restoDay(r), items: r.items.map(it => ({ n: it.n, a: it.a, h: it.h, d: tr(it.d) })) }));
+  const cityDayIdx = DAYS.map((d, i) => i).filter(i => dayCity(DAYS[i]) === state.city);
+
+  return {
+    ui, isPP,
+    trip: { title: tr(TRIP.title), sub: tr(TRIP.sub), dates: tr(TRIP.dates) },
+    stats: TRIP.stats.map(s => ({ n: s.n, l: tr(s.l) })),
+    lodging: hotelsAll.filter(h => h.city === state.city),   // screen: current city only
+    lodgingAll: hotelsAll,                                     // booklet: every hotel
+    dayTabs: cityDayIdx.map(i => ({ num: String(i + 1).padStart(2, '0'), date: tr(DAYS[i].date), short: tr(DAYS[i].title), active: i === state.day, val: i })),
+    day: { date: tr(cur.date), title: tr(cur.title), lede: tr(cur.lede), options: cur.options ? tr(cur.options) : '', photoCap: tr(cur.photoCap), photo: cur.photo, stops: curStops, notes: notesForDay(cur) },
+    days,
+    restos: restosAll,                                         // booklet: every set
+    dayRestos: restosAll.filter(r => r.day === state.day),     // screen: current day only
+    legend: DAYS.map((day, i) => ({ label: tr(day.date), color: dayColor(i), i, city: dayCity(day) })),
+    notePages: [1, 2].map(n => ({ n: String(n).padStart(2, '0'), lines: Array.from({ length: isPP ? 15 : 24 }) }))
+  };
+}
+
+/* ---------- screen fragments ---------- */
+function tabsInner(D) {
+  return D.dayTabs.map(d => (
+    '<button data-act="day" data-val="' + d.val + '" style="' + tabBtn(d.active) + '">' +
+      '<span style="display:block;font-size:9px;letter-spacing:0.16em;margin-bottom:4px;">' + d.num + '</span>' +
+      '<span style="display:block;font-size:8.5px;letter-spacing:0.04em;text-transform:none;color:#8a4b3a;margin-bottom:4px;white-space:nowrap;">' + esc(d.date) + '</span>' +
+      '<span style="display:block;font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;letter-spacing:0;text-transform:none;white-space:nowrap;">' + esc(d.short) + '</span>' +
+    '</button>'
+  )).join('');
+}
+
+function panelInner(D) {
+  const stopRow = st =>
+    '<div ' + (st.ref ? 'id="stop-' + st.ref + '" ' : '') + 'style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:22px;padding:20px 0;border-top:1px solid #e0dad0;scroll-margin-top:120px;">' +
+      '<div>' +
+        '<div style="font-size:12px;font-weight:600;letter-spacing:0.02em;">' + esc(st.time) + '</div>' +
+        (st.tag ? '<div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a4b3a;margin-top:5px;">' + esc(st.tag) + '</div>' : '') +
+      '</div>' +
+      '<div>' +
+        '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">' +
+          '<h4 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:20px;margin:0;">' + esc(st.name) + '</h4>' +
+          '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(st.kind) + '</span>' +
+          (st.ref ? '<a href="' + st.href + '" style="font-size:9.5px;letter-spacing:0.1em;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">note ' + st.ref + '</a>' : '') +
+          (st.lat && st.lng ? '<span data-act="locate" data-lat="' + st.lat + '" data-lng="' + st.lng + '" style="cursor:pointer;font-size:9.5px;letter-spacing:0.1em;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
+        '</div>' +
+        '<p style="font-size:13px;line-height:1.75;color:#57534b;margin:7px 0 0;max-width:62ch;text-wrap:pretty;">' + esc(st.desc) + '</p>' +
+      '</div>' +
+    '</div>';
+
+  return (
+    '<div>' +
+      '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#8a4b3a;margin-bottom:12px;">' + esc(D.day.date) + '</div>' +
+      '<div style="position:relative;padding-top:118%;background:#e6e2d8;overflow:hidden;">' +
+        '<div data-photo="' + esc(D.day.photo) + '" style="' + photoStyle(D.day.photo, false) + '"></div>' +
+      '</div>' +
+      '<div style="margin-top:9px;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(D.day.photoCap) + '</div>' +
+    '</div>' +
+    '<div>' +
+      '<h2 style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:clamp(34px,4vw,54px);line-height:1.02;letter-spacing:-0.015em;margin:0 0 16px;">' + esc(D.day.title) + '</h2>' +
+      '<p style="font-size:14px;line-height:1.8;color:#57534b;margin:0 0 34px;max-width:52ch;text-wrap:pretty;">' + esc(D.day.lede) + '</p>' +
+      (D.day.options ? '<p style="font-size:12px;line-height:1.7;color:#57534b;border-top:1px solid #cfc9bd;border-bottom:1px solid #cfc9bd;padding:12px 0;margin:0 0 34px;">' + esc(D.day.options) + '</p>' : '') +
+      D.day.stops.map(stopRow).join('') +
+    '</div>'
+  );
+}
+
+function cultureInner(D) {
+  if (!D.day.notes.length) return '';
+  return (
+    '<div style="padding:70px 0 90px;margin-top:60px;border-top:1px solid #1a1a18;">' +
+      '<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:30px;">' +
+        '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.appendix) + '</span>' +
+        '<span style="flex:1;height:1px;background:#cfc9bd;"></span>' +
+        '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#7a756c;">' + esc(D.day.date) + '</span>' +
+      '</div>' +
+      '<div style="columns:2;column-gap:56px;">' +
+        D.day.notes.map(n => '<div id="' + n.id + '" style="break-inside:avoid;margin-bottom:20px;scroll-margin-top:120px;">' +
+          '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px;">' +
+            '<a href="#' + n.stopId + '" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8a4b3a;">' + n.ref + ' — ' + esc(n.name) + ' <span style="color:#7a756c;">↩</span></a>' +
+            (n.lat && n.lng ? '<span data-act="locate" data-lat="' + n.lat + '" data-lng="' + n.lng + '" style="cursor:pointer;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
+          '</div>' +
+          n.parts.map(p => '<p style="font-size:12.5px;line-height:1.7;color:#57534b;margin:0 0 5px;text-wrap:pretty;">' +
+            (p.label ? '<span style="font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#1a1a18;margin-right:7px;">' + esc(p.label) + '</span>' : '') +
+            esc(p.body) + '</p>').join('') +
+        '</div>').join('') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function lodgingInner(D) {
+  // Multiple hotels stacked under the single "Logement" label.
+  return D.lodging.map((l, i) => '<div style="' + (i > 0 ? 'margin-top:22px;padding-top:22px;border-top:1px solid #e0dad0;' : '') + '">' +
+    '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:24px;margin:0 0 10px;">' + esc(l.title) + '</h3>' +
+    (l.address ? '<p style="margin:0 0 6px;font-size:13px;color:#1a1a18;">' + esc(l.address) + '</p>' : '') +
+    (l.note ? '<p style="margin:0;font-size:13px;line-height:1.75;color:#57534b;max-width:56ch;">' + esc(l.note) + '</p>' : '') +
+  '</div>').join('');
+}
+
+function legendInner(D) {
+  // Only the days of the map's selected city (independent of the sub-guide).
+  return D.legend.filter(l => l.city === state.mapCity).map(l =>
+    '<span data-act="focus" data-val="' + l.i + '" class="leg" style="display:flex;align-items:center;gap:7px;cursor:pointer;"><i style="width:11px;height:11px;border-radius:50%;background:' + l.color + ';display:inline-block;"></i>' + esc(l.label) + '</span>'
+  ).join('');
+}
+
+function tablesInner(D) {
+  // À table — only the restaurant sets for the selected day (hidden when the day has none).
+  if (!D.dayRestos.length) return '';
+  return (
+    '<div style="padding:60px 0 0;border-top:1px solid #1a1a18;margin-top:50px;">' +
+      '<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:34px;">' +
+        '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.tables) + '</span>' +
+        '<span style="flex:1;height:1px;background:#cfc9bd;"></span>' +
+        '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#7a756c;">' + esc(D.day.date) + '</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px;">' +
+        D.dayRestos.map(r => '<div>' +
+          '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:22px;margin:0 0 4px;">' + esc(r.title) + '</h3>' +
+          (r.note ? '<div style="font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;margin-bottom:16px;">' + esc(r.note) + '</div>' : '<div style="margin-bottom:12px;"></div>') +
+          r.items.map(it => '<div style="padding:11px 0;border-top:1px solid #e0dad0;">' +
+            '<div style="display:flex;justify-content:space-between;gap:14px;align-items:baseline;">' +
+              '<span style="font-size:13px;font-weight:600;">' + esc(it.n) + '</span>' +
+              '<span style="font-size:10px;color:#7a756c;white-space:nowrap;">' + esc(pp(it.h)) + '</span>' +
+            '</div>' +
+            (it.a ? '<div style="font-size:11.5px;color:#7a756c;margin-top:3px;">' + esc(it.a) + '</div>' : '') +
+            '<div style="font-size:12.5px;color:#57534b;line-height:1.6;margin-top:3px;">' + esc(it.d) + '</div>' +
+          '</div>').join('') +
+        '</div>').join('') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderScreen() {
+  const D = derive();
+  const screen = document.getElementById('screen');
+  screen.innerHTML =
+    /* sticky bar */
+    '<div style="position:sticky;top:0;z-index:30;background:#f4f1ea;border-bottom:1px solid #1a1a18;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 32px;">' +
+      '<a href="../index.html" style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;">← Alexia en route</a>' +
+      '<div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:flex-end;">' +
+        '<div style="display:flex;gap:2px;">' +
+          '<button data-act="lang" data-val="fr" style="' + pill(state.lang === 'fr') + '">FR</button>' +
+          '<button data-act="lang" data-val="en" style="' + pill(state.lang === 'en') + '">EN</button>' +
+          '<button data-act="lang" data-val="es" style="' + pill(state.lang === 'es') + '">ES</button>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;border-left:1px solid #cfc9bd;padding-left:22px;">' +
+          '<span style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#7a756c;">' + esc(D.ui.format) + '</span>' +
+          '<button data-act="fmt" data-val="b5" style="' + pill(state.fmt === 'b5') + '">B5</button>' +
+          '<button data-act="fmt" data-val="pp" style="' + pill(state.fmt === 'pp') + '">Passport</button>' +
+          '<button data-act="print" style="font-family:Archivo,sans-serif;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;background:#1a1a18;color:#f4f1ea;border:1px solid #1a1a18;padding:7px 14px;cursor:pointer;">' + esc(D.ui.print) + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    /* cover */
+    '<div class="cover-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-bottom:1px solid #1a1a18;">' +
+      '<div style="padding:78px 46px 54px;display:flex;flex-direction:column;justify-content:space-between;">' +
+        '<div>' +
+          '<div style="font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#8a4b3a;margin-bottom:30px;">' + esc(D.ui.eyebrow) + '</div>' +
+          '<h1 style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:clamp(44px,5.6vw,88px);line-height:0.98;letter-spacing:-0.02em;margin:0 0 24px;">' + esc(D.trip.title) + '</h1>' +
+          '<p style="font-size:13.5px;line-height:1.8;color:#57534b;max-width:46ch;margin:0;text-wrap:pretty;">' + esc(D.trip.sub) + '</p>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:34px;margin-top:52px;padding-top:26px;border-top:1px solid #cfc9bd;">' +
+          D.stats.map(s => '<div>' +
+            '<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:34px;line-height:1;">' + esc(s.n) + '</div>' +
+            '<div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#7a756c;margin-top:6px;">' + esc(s.l) + '</div>' +
+          '</div>').join('') +
+        '</div>' +
+      '</div>' +
+      '<div style="position:relative;border-left:1px solid #1a1a18;min-height:440px;background:#e6e2d8;">' +
+        '<div data-hero style="' + heroStyle(false) + '"></div>' +
+        '<div style="position:absolute;left:0;bottom:0;background:#f4f1ea;padding:9px 16px;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(D.trip.dates) + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="max-width:1180px;margin:0 auto;padding:0 46px;">' +
+
+      /* City sub-guide selector (NYC / Chicago / Seattle) — scopes the whole screen guide */
+      '<div style="display:flex;align-items:center;gap:16px;padding:46px 0 0;">' +
+        '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">Villes</span>' +
+        '<span style="flex:1;height:1px;background:#cfc9bd;"></span>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;padding:18px 0 6px;flex-wrap:wrap;">' +
+        CITY_DEFS.map(c => '<button data-act="city" data-val="' + c.key + '" style="' + cityTab(state.city === c.key) + '">' + c.label + '</button>').join('') +
+      '</div>' +
+
+      /* lodging (hotels of the selected city) */
+      '<div class="lodging-grid" style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:40px;padding:34px 0 46px;border-bottom:1px solid #cfc9bd;">' +
+        '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.lodging) + '</div>' +
+        '<div>' + lodgingInner(D) + '</div>' +
+      '</div>' +
+
+      /* day tabs */
+      '<div id="day-tabs" style="display:flex;gap:0;overflow-x:auto;border-bottom:1px solid #1a1a18;position:sticky;top:53px;background:#f4f1ea;z-index:20;">' + tabsInner(D) + '</div>' +
+
+      /* day panel */
+      '<div id="day-panel" class="day-grid" style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:40px;padding:52px 0 18px;">' + panelInner(D) + '</div>' +
+
+      /* Point Culture (filtered to the selected day; re-rendered on day change) */
+      '<div id="culture">' + cultureInner(D) + '</div>' +
+
+      /* À table (filtered to the selected day; re-rendered on day change) */
+      '<div id="tables">' + tablesInner(D) + '</div>' +
+
+      /* Carte — map for the selected city, legend limited to that city's days */
+      '<div style="padding:70px 0 0;margin-top:60px;border-top:1px solid #1a1a18;">' +
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap;">' +
+          '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.map) + '</span>' +
+          '<span style="flex:1;height:1px;background:#cfc9bd;min-width:20px;"></span>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            CITY_DEFS.map(c => '<button data-act="mapcity" data-val="' + c.key + '" style="' + pill(state.mapCity === c.key) + '">' + c.label + '</button>').join('') +
+          '</div>' +
+        '</div>' +
+        '<div id="map" style="height:520px;border:1px solid #1a1a18;"></div>' +
+        '<div id="map-legend" style="display:flex;flex-wrap:wrap;gap:20px;margin-top:12px;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#7a756c;">' + legendInner(D) + '</div>' +
+      '</div>' +
+
+    '</div>';
+
+  initMap();
+  applyImages();
+}
+
+function renderDayRegion() {
+  const D = derive();
+  document.getElementById('day-tabs').innerHTML = tabsInner(D);
+  document.getElementById('day-panel').innerHTML = panelInner(D);
+  document.getElementById('culture').innerHTML = cultureInner(D);
+  document.getElementById('tables').innerHTML = tablesInner(D);
+  if (state.map) highlightDay(state.day);
+  applyImages();
+}
+
+/* ---------- booklet ---------- */
+function renderBooklet() {
+  const D = derive();
+  const bk = document.getElementById('bk');
+  bk.className = 'bk ' + state.fmt;
+
+  let html = '';
+
+  /* cover */
+  html +=
+    '<div class="pg" style="display:flex;flex-direction:column;justify-content:space-between;text-align:center;">' +
+      '<div><div class="lbl" style="font-size:0.72em;letter-spacing:0.3em;">Alexia en route</div>' +
+        '<div style="height:1px;background:#1a1a18;margin:0.9em 0 0;"></div></div>' +
+      '<div>' +
+        '<div class="cvimg" style="background:#e6e2d8;overflow:hidden;margin-bottom:2em;"><div data-hero style="' + heroStyle(true) + '"></div></div>' +
+        '<h1 style="font-weight:300;font-size:3.2em;line-height:1;margin:0 0 0.5em;letter-spacing:-0.02em;">' + esc(D.trip.title) + '</h1>' +
+        '<div class="lbl" style="font-size:0.78em;letter-spacing:0.22em;color:#57534b;">' + esc(D.trip.dates) + '</div>' +
+      '</div>' +
+      '<div class="lbl" style="font-size:0.7em;letter-spacing:0.18em;color:#7a756c;">' + esc(TRIP.travellers || '') + '</div>' +
+    '</div>';
+
+  /* logement — hotels, then a chunked itinerary summary (paginates for long trips) */
+  const hotelsHtml = D.lodgingAll.map(l => '<div style="margin-bottom:1.1em;break-inside:avoid;">' +
+    '<h2 style="font-weight:400;font-size:1.4em;margin:0 0 0.2em;">' + esc(l.title) + '</h2>' +
+    (l.address ? '<p style="margin:0 0 0.2em;">' + esc(l.address) + '</p>' : '') +
+    (l.note ? '<p style="margin:0;color:#57534b;">' + esc(l.note) + '</p>' : '') +
+  '</div>').join('');
+  const itinRow = d => '<div style="display:flex;justify-content:space-between;gap:1em;padding:0.5em 0;border-bottom:1px solid #e0dad0;">' +
+    '<span style="font-style:italic;">' + esc(d.title) + '</span>' +
+    '<span class="lbl" style="font-size:0.7em;letter-spacing:0.1em;color:#7a756c;white-space:nowrap;">' + esc(d.date) + '</span>' +
+  '</div>';
+  const itinRows = D.days.map(itinRow);
+  const firstCount = state.fmt === 'pp' ? 4 : 10;
+  const contCount = state.fmt === 'pp' ? 15 : 26;
+  const firstRows = itinRows.slice(0, firstCount);
+  const contChunks = chunk(itinRows.slice(firstCount), contCount).filter(c => c.length);
+  html +=
+    '<div class="pg">' +
+      '<div class="lbl" style="font-size:0.72em;letter-spacing:0.24em;border-bottom:1px solid #1a1a18;padding-bottom:0.5em;margin-bottom:1.6em;">' + esc(D.ui.lodging) + '</div>' +
+      hotelsHtml +
+      '<div class="lbl" style="font-size:0.68em;letter-spacing:0.2em;border-top:1px solid #cfc9bd;padding-top:0.9em;margin-bottom:1em;">' + esc(D.ui.itinerary) + '</div>' +
+      firstRows.join('') +
+    '</div>';
+  contChunks.forEach(rows => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="' + HDR + '"><span>' + esc(D.ui.itinerary) + ' (suite)</span><span></span></div>' +
+        rows.join('') +
+      '</div>';
+  });
+
+  /* per day: title page + itinerary pages + this day's Point Culture */
+  D.days.forEach(d => {
+    html +=
+      '<div class="pg" style="display:flex;flex-direction:column;">' +
+        '<div class="lbl" style="font-size:0.7em;letter-spacing:0.22em;color:#8a4b3a;">' + d.num + ' — ' + esc(d.date) + '</div>' +
+        '<h2 style="font-weight:300;font-size:2.2em;line-height:1.02;margin:0.4em 0 0.4em;letter-spacing:-0.015em;">' + esc(d.title) + '</h2>' +
+        '<p style="margin:0 0 1.2em;color:#57534b;">' + esc(d.lede) + '</p>' +
+        '<div class="hero" style="background:#e6e2d8;overflow:hidden;"><div data-photo="' + esc(d.photo) + '" style="' + photoStyle(d.photo, true) + '"></div></div>' +
+        '<div class="lbl" style="font-size:0.62em;letter-spacing:0.14em;color:#7a756c;margin-top:0.5em;">' + esc(d.photoCap) + '</div>' +
+      '</div>';
+    d.stopPages.forEach(sp => {
+      html +=
+        '<div class="pg">' +
+          '<div class="lbl" style="' + HDR + '"><span>' + d.num + ' ' + sp.cont + '</span><span>' + esc(d.date) + '</span></div>' +
+          sp.stops.map(st => '<div style="display:flex;gap:0.9em;padding:0.5em 0;border-bottom:1px solid #efece4;break-inside:avoid;">' +
+            '<div class="lbl" style="flex:0 0 4.2em;font-size:0.78em;font-weight:600;padding-top:0.15em;">' + esc(st.time) + '</div>' +
+            '<div style="flex:1;">' +
+              '<div style="font-weight:500;">' + esc(st.name) + '<span class="lbl" style="font-size:0.62em;letter-spacing:0.12em;color:#7a756c;margin-left:0.6em;">' + esc(st.kind) + '</span></div>' +
+              '<div style="color:#57534b;">' + esc(st.desc) + '</div>' +
+            '</div>' +
+          '</div>').join('') +
+        '</div>';
+    });
+    d.culturePages.forEach(cp => {
+      html +=
+        '<div class="pg">' +
+          '<div class="lbl" style="' + HDR + '"><span>' + esc(D.ui.appendix) + ' ' + cp.cont + '</span><span>' + esc(d.date) + '</span></div>' +
+          cp.notes.map(n => '<div style="break-inside:avoid;margin-bottom:0.9em;">' +
+            '<div class="lbl" style="font-size:0.66em;letter-spacing:0.14em;color:#8a4b3a;">' + n.ref + ' — ' + esc(n.name) + '</div>' +
+            n.parts.map(p => '<div style="color:#57534b;margin-top:0.2em;">' +
+              (p.label ? '<span class="lbl" style="font-size:0.66em;letter-spacing:0.12em;color:#1a1a18;margin-right:0.45em;">' + esc(p.label) + '</span>' : '') +
+              esc(p.body) + '</div>').join('') +
+          '</div>').join('') +
+        '</div>';
+    });
+  });
+
+  /* À table */
+  D.restos.forEach(r => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #1a1a18;padding-bottom:0.45em;margin-bottom:1.1em;">' + esc(D.ui.tables) + '</div>' +
+        '<h2 style="font-weight:400;font-size:1.7em;margin:0 0 0.25em;">' + esc(r.title) + '</h2>' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.16em;color:#7a756c;margin-bottom:1.4em;">' + esc(r.note) + '</div>' +
+        r.items.map(it => '<div style="padding:0.6em 0;border-top:1px solid #e0dad0;break-inside:avoid;">' +
+          '<div style="display:flex;justify-content:space-between;gap:1em;"><span style="font-weight:500;">' + esc(it.n) + '</span>' +
+          '<span class="lbl" style="font-size:0.7em;color:#7a756c;white-space:nowrap;">' + esc(pp(it.h)) + '</span></div>' +
+          '<div style="color:#7a756c;font-size:0.86em;">' + esc(it.a) + '</div>' +
+          '<div style="color:#57534b;">' + esc(it.d) + '</div>' +
+        '</div>').join('') +
+      '</div>';
+  });
+
+  /* Carte — one page per day */
+  D.days.forEach(d => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="' + HDR + '"><span>' + esc(D.ui.map) + '</span><span>' + d.num + '</span></div>' +
+        '<div class="mapbox" style="position:relative;overflow:hidden;border:1px solid #1a1a18;background:#eceae4;">' +
+          d.tiles.map(t => '<span style="' + t.style + '"></span>').join('') +
+          d.dots.map(p => '<span style="' + p.style + '">' + p.n + '</span>').join('') +
+        '</div>' +
+        '<div style="margin-top:0.9em;columns:2;column-gap:1.4em;">' +
+          d.stops.map(st => '<div style="font-size:0.82em;color:#57534b;break-inside:avoid;padding:0.1em 0;">' + st.i + '. ' + esc(st.name) + '</div>').join('') +
+        '</div>' +
+      '</div>';
+  });
+
+  /* Notes & repères — blank ruled pages */
+  D.notePages.forEach(np => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #1a1a18;padding-bottom:0.45em;margin-bottom:1.4em;display:flex;justify-content:space-between;"><span>' + esc(D.ui.notes) + '</span><span>' + np.n + '</span></div>' +
+        np.lines.map(() => '<div style="border-bottom:1px solid #e6e2d8;height:2.1em;"></div>').join('') +
+      '</div>';
+  });
+
+  bk.innerHTML = html;
+  applyImages();
+}
+
+/* ---------- Leaflet map (screen) ---------- */
+function initMap() {
+  if (!window.L) { setTimeout(initMap, 200); return; }
+  const el = document.getElementById('map');
+  if (!el) return;
+  if (state.map) { try { state.map.remove(); } catch (e) {} state.map = null; }
+  const map = L.map(el);
+  state.map = map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', attribution: '&copy; OpenStreetMap · &copy; CARTO' }).addTo(map);
+  const pin = (color, glyph) => L.divIcon({ className: '', iconSize: [18, 18], iconAnchor: [9, 9],
+    html: '<div style="background:' + color + ';color:#fff;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font:600 9px Archivo,sans-serif;">' + glyph + '</div>' });
+  const coords = [];
+  // Lodging: a bold, distinct house marker kept on top of the day pins.
+  const homeIcon = L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+    html: '<svg width="24" height="24" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 1.5px rgba(0,0,0,.35));"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="#1a1a18"/></svg>' });
+  (TRIP.lodging || []).forEach(l => {
+    if (l.lat && l.lng) { L.marker([l.lat, l.lng], { icon: homeIcon, zIndexOffset: 1000 }).addTo(map).bindPopup(l.address || tr(l.title)); coords.push([l.lat, l.lng]); }
+  });
+  state.mapDays = [];
+  DAYS.forEach((d, di) => {
+    const line = []; const markers = [];
+    const dc = dayCity(d);   // only connect stops within the day's own city (no transcontinental lines)
+    d.stops.forEach((s, i) => {
+      if (!(s.lat && s.lng) || isAirport(s)) return;   // no airport marker
+      const ic = kindIcon(tr(s.kind));
+      const mk = L.marker([s.lat, s.lng], { icon: stopPin(dayColor(di), ic, i + 1) }).addTo(map).bindPopup(s.time + ' · ' + tr(s.name));
+      markers.push({ marker: mk, n: i + 1, icon: ic });
+      coords.push([s.lat, s.lng]);
+      const band = CITY_DEFS.find(x => s.lng > x.min && s.lng <= x.max);
+      if (band && band.key === dc) line.push([s.lat, s.lng]);
+    });
+    const ln = line.length > 1 ? L.polyline(line, { color: dayColor(di), weight: 2, opacity: 0.75, dashArray: '4 5' }).addTo(map) : null;
+    state.mapDays.push({ color: dayColor(di), line: ln, markers });
+  });
+  // Restaurant markers (rust diamonds) — RESTO items that carry coordinates.
+  const restoPin = L.divIcon({ className: '', iconSize: [8, 8], iconAnchor: [4, 4], html: '<div style="width:6px;height:6px;background:#8a4b3a;border:1px solid #fff;transform:rotate(45deg);"></div>' });
+  RESTO_SETS.forEach(r => r.items.forEach(it => {
+    if (it.lat && it.lng) { L.marker([it.lat, it.lng], { icon: restoPin }).addTo(map).bindPopup((it.n || '') + (it.a ? ' · ' + it.a : '')); }
+  }));
+  const cityPts = cityCoords(state.mapCity);
+  if (TRIP.center && TRIP.center.length >= 2) map.setView([TRIP.center[0], TRIP.center[1]], TRIP.center[2] || 12);
+  else if (cityPts.length) map.fitBounds(cityPts, { padding: [40, 40], maxZoom: 14 });
+  else if (coords.length) map.fitBounds(coords, { padding: [30, 30] });
+  else map.setView([40.7, -74], 4);
+  highlightDay(state.day);
+}
+
+/* ---------- photography (placeholders from Wikimedia) ---------- */
+async function wiki(title, w) {
+  try {
+    const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + title);
+    const j = await r.json();
+    const thumb = (j.thumbnail && j.thumbnail.source) || (j.originalimage && j.originalimage.source) || '';
+    if (!thumb) return null;
+    const file = decodeURIComponent(thumb.split('?')[0].split('/').filter(Boolean).pop().replace(/^\d+px-/, ''));
+    return { src: 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(file) + '?width=' + (w || 800), fallback: thumb };
+  } catch (e) { return null; }
+}
+function setFill(el, img) {
+  const probe = new Image();
+  const paint = url => { el.style.background = '#e6e2d8 url("' + url + '") center/cover no-repeat'; el.style.filter = 'grayscale(1) contrast(1.06)'; };
+  probe.onload = () => paint(img.src);
+  probe.onerror = () => { if (img.fallback) paint(img.fallback); };
+  probe.src = img.src;
+}
+function applyImages() {
+  if (state.hero && state.hero.src) document.querySelectorAll('[data-hero]').forEach(el => setFill(el, state.hero));
+  document.querySelectorAll('[data-photo]').forEach(el => {
+    const img = state.imgs[el.getAttribute('data-photo')];
+    if (img && img.src) setFill(el, img);
+  });
+}
+async function loadImages() {
+  state.hero = await wiki(TRIP.hero || 'Manhattan', 1200);
+  applyImages();
+  for (const d of DAYS) {
+    if (!d.photo || state.imgs[d.photo]) continue;
+    const img = await wiki(d.photo);
+    if (img) { state.imgs[d.photo] = img; applyImages(); }
+  }
+}
+
+/* ---------- print ---------- */
+function doPrint() {
+  const size = state.fmt === 'pp' ? '88mm 125mm' : '176mm 250mm';
+  let s = document.getElementById('bk-page-size');
+  if (!s) { s = document.createElement('style'); s.id = 'bk-page-size'; document.head.appendChild(s); }
+  s.textContent = '@media print{@page{size:' + size + ';margin:0;}}';
+  window.print();
+}
+
+/* ---------- events ---------- */
+document.getElementById('screen').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, val = b.dataset.val;
+  if (act === 'lang') {
+    if (state.lang === val) return;
+    state.lang = val;
+    document.documentElement.lang = val;
+    renderScreen();
+    renderBooklet();
+  } else if (act === 'fmt') {
+    if (state.fmt === val) return;
+    state.fmt = val;
+    renderScreen();
+    renderBooklet();
+  } else if (act === 'day') {
+    const n = +val;
+    if (state.day === n) return;
+    state.day = n;
+    renderDayRegion();
+  } else if (act === 'focus') {
+    // Legend click: select that day (panel + colour highlight, greys the rest) and zoom to it.
+    const di = +val;
+    state.day = di;
+    const c = dayCity(DAYS[di]);
+    if (c && c !== state.city) { state.city = c; state.mapCity = c; renderScreen(); }
+    else renderDayRegion();
+    const pts = DAYS[di].stops.filter(s => s.lat && s.lng && !isAirport(s)).map(s => [s.lat, s.lng]);
+    if (state.map && pts.length) {
+      if (pts.length === 1) state.map.setView(pts[0], 15);
+      else state.map.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } else if (act === 'city') {
+    // Sub-guide selector: scope the whole screen to NY / Chicago / Seattle.
+    if (state.city === val) return;
+    state.city = val;
+    state.mapCity = val;   // the map follows when you switch sub-guide
+    const first = DAYS.findIndex(d => dayCity(d) === val);
+    if (first >= 0) state.day = first;
+    renderScreen();
+  } else if (act === 'mapcity') {
+    // Map city button: focus that city AND restore every itinerary to full colour.
+    state.mapCity = val;
+    document.querySelectorAll('[data-act="mapcity"]').forEach(btn => { btn.style.cssText = pill(btn.dataset.val === val); });
+    document.getElementById('map-legend').innerHTML = legendInner(derive());
+    focusCity(val);
+    highlightDay(null);
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (act === 'locate') {
+    // "carte ↗" on a Point Culture note: pinpoint that stop on the map.
+    const lat = +b.dataset.lat, lng = +b.dataset.lng;
+    if (state.map && lat && lng) {
+      state.map.setView([lat, lng], 16);
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } else if (act === 'print') {
+    doPrint();
+  }
 });
+
+/* ---------- boot ---------- */
+(function () {
+  // Deep-link from the home page: ?city=ny|chi|sea opens the matching sub-guide directly.
+  const c0 = new URLSearchParams(location.search).get('city');
+  if (c0 && CITY_DEFS.some(x => x.key === c0)) {
+    state.city = c0; state.mapCity = c0;
+    const f = DAYS.findIndex(d => dayCity(d) === c0);
+    if (f >= 0) state.day = f;
+  }
+})();
+renderScreen();
+renderBooklet();
+loadImages();
 </script>
 </body>
 </html>
