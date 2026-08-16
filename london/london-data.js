@@ -218,4 +218,4 @@ export const DAYS = [
     ]}
 ];
 
-export const DAY_COLORS = ['#6d6875','#457b9d','#8e44ad','#2a9d8f','#e76f51'];
+export const DAY_COLORS = ['#143a52','#1f8f7c','#4a86a8','#6c5b7b','#2b8f8f'];
