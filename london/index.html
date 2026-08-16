@@ -18,6 +18,17 @@
   .leaflet-container{background:#e6e2d8;font-family:Archivo,sans-serif;}
   .leaflet-tile-pane{filter:grayscale(1) contrast(1.05);}   /* B&W basemap only — markers & routes stay in colour */
   #screen .leg:hover{color:#1a1a18;}
+  .resto-set{border-top:1px solid #e0dad0;padding:16px 0;}
+  .resto-set summary{list-style:none;cursor:pointer;outline:none;}
+  .resto-set summary::-webkit-details-marker{display:none;}
+  .resto-set .chev{display:inline-block;transition:transform .2s;color:#8a4b3a;}
+  .resto-set[open] .chev{transform:rotate(90deg);}
+  .stop summary{list-style:none;outline:none;}
+  .stop summary::-webkit-details-marker{display:none;}
+  .stop .pm{width:26px;height:26px;border-radius:50%;border:0.5px solid #cfc9bd;display:flex;align-items:center;justify-content:center;color:#8a4b3a;font:400 16px Archivo,sans-serif;align-self:center;}
+  .stop .pm::after{content:'+';}
+  .stop[open] .pm::after{content:'−';}
+  .stop[open] .pm{border-color:#8a4b3a;}
   .bk{display:none;}
 
   /* Responsive: collapse the two-column grids on narrow screens */
@@ -25,6 +36,12 @@
     .cover-grid{grid-template-columns:1fr !important;}
     .cover-grid > div:last-child{border-left:none !important;border-top:1px solid #1a1a18;min-height:280px !important;}
     .lodging-grid,.day-grid{grid-template-columns:1fr !important;gap:26px !important;}
+  }
+  @media (max-width:700px){
+    .culture-cols{column-count:1 !important;column-width:auto !important;}   /* Point Culture readable on phones */
+    .topbar{padding:12px 16px !important;gap:10px !important;flex-wrap:wrap !important;}
+    .topbar > a{flex:0 0 auto;}
+    .wrap{padding:0 18px !important;}
   }
 
   @media print{
@@ -185,15 +202,16 @@ function derive() {
   });
 
   const cur = DAYS[state.day];
-  const curStops = cur.stops.map(s => {
-    const ref = refOf.get(s) || '';
-    return { time: s.time, tag: s.tag || '', kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc), lat: s.lat, lng: s.lng, ref, href: ref ? '#note-' + ref : '' };
-  });
+  const curStops = cur.stops.map((s, i) => ({
+    n: i + 1, time: s.time, tag: s.tag || '', kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc), lat: s.lat, lng: s.lng,
+    parts: s.note ? parseNote(tr(s.note)) : null
+  }));
 
   const restosAll = RESTO_SETS.map(r => ({ title: tr(r.title), note: tr(r.note), day: (r.day == null ? -1 : r.day), always: !!r.always, items: r.items.map(it => ({ n: it.n, a: it.a, h: it.h, d: tr(it.d) })) }));
 
   return {
     ui, isPP,
+    dayColor: DAY_COLORS[state.day % DAY_COLORS.length],
     trip: { title: tr(TRIP.title), sub: tr(TRIP.sub), dates: tr(TRIP.dates) },
     stats: TRIP.stats.map(s => ({ n: s.n, l: tr(s.l) })),
     lodging: { title: tr(TRIP.lodging.title), address: TRIP.lodging.address, note: tr(TRIP.lodging.note) },
@@ -219,22 +237,26 @@ function tabsInner(D) {
 }
 
 function panelInner(D) {
-  const stopRow = st =>
-    '<div ' + (st.ref ? 'id="stop-' + st.ref + '" ' : '') + 'style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:22px;padding:20px 0;border-top:1px solid #e0dad0;scroll-margin-top:120px;">' +
-      '<div>' +
-        '<div style="font-size:12px;font-weight:600;letter-spacing:0.02em;">' + esc(st.time) + '</div>' +
-        (st.tag ? '<div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a4b3a;margin-top:5px;">' + esc(st.tag) + '</div>' : '') +
-      '</div>' +
-      '<div>' +
-        '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">' +
-          '<h4 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:20px;margin:0;">' + esc(st.name) + '</h4>' +
-          '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(st.kind) + '</span>' +
-          (st.ref ? '<a href="' + st.href + '" style="font-size:9.5px;letter-spacing:0.1em;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">note ' + st.ref + '</a>' : '') +
-          (st.lat && st.lng ? '<span data-act="locate" data-lat="' + st.lat + '" data-lng="' + st.lng + '" style="cursor:pointer;font-size:9.5px;letter-spacing:0.1em;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
-        '</div>' +
-        '<p style="font-size:13px;line-height:1.75;color:#57534b;margin:7px 0 0;max-width:62ch;text-wrap:pretty;">' + esc(st.desc) + '</p>' +
-      '</div>' +
+  const rowGrid = 'display:grid;grid-template-columns:64px minmax(0,1fr) 28px;gap:20px;padding:20px 0;align-items:start;';
+  const timeCol = st => '<div><div style="font-size:12px;font-weight:600;letter-spacing:0.02em;">' + esc(st.time) + '</div>' +
+    (st.tag ? '<div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a4b3a;margin-top:5px;">' + esc(st.tag) + '</div>' : '') + '</div>';
+  const head = st => '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">' +
+      '<span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:' + D.dayColor + ';color:#fff;display:inline-flex;align-items:center;justify-content:center;font:600 11px Archivo,sans-serif;align-self:center;">' + st.n + '</span>' +
+      '<h4 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:20px;margin:0;">' + esc(st.name) + '</h4>' +
+      '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(st.kind) + '</span>' +
+      (st.lat && st.lng ? '<span data-act="locate" data-lat="' + st.lat + '" data-lng="' + st.lng + '" style="cursor:pointer;font-size:9.5px;letter-spacing:0.1em;color:#8a4b3a;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
     '</div>';
+  const descP = st => '<p style="font-size:13px;line-height:1.75;color:#57534b;margin:7px 0 0;max-width:62ch;text-wrap:pretty;">' + esc(st.desc) + '</p>';
+  const noteBody = st => '<div style="padding:2px 0 16px 84px;">' +
+    st.parts.map(p => '<p style="font-size:12.5px;line-height:1.7;color:#57534b;margin:8px 0 0;text-wrap:pretty;">' +
+      (p.label ? '<span style="font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#1a1a18;margin-right:7px;">' + esc(p.label) + '</span>' : '') +
+      esc(p.body) + '</p>').join('') + '</div>';
+  const stopRow = st => st.parts
+    ? '<details class="stop" style="border-top:1px solid #e0dad0;">' +
+        '<summary style="' + rowGrid + 'cursor:pointer;">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span class="pm"></span></summary>' +
+        noteBody(st) +
+      '</details>'
+    : '<div style="border-top:1px solid #e0dad0;"><div style="' + rowGrid + '">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span></span></div></div>';
 
   return (
     '<div>' +
@@ -254,8 +276,8 @@ function panelInner(D) {
 }
 
 function cultureInner(D) {
-  // Only the notes for the currently-selected day; the section disappears when the day has none.
-  if (!D.day.notes.length) return '';
+  return '';   // Point Culture now folds into each itinerary stop (see panelInner); no separate section on screen
+  // eslint-disable-next-line no-unreachable
   return (
     '<div style="padding:70px 0 90px;margin-top:60px;border-top:1px solid #1a1a18;">' +
       '<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:30px;">' +
@@ -263,7 +285,7 @@ function cultureInner(D) {
         '<span style="flex:1;height:1px;background:#cfc9bd;"></span>' +
         '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#7a756c;">' + esc(D.day.date) + '</span>' +
       '</div>' +
-      '<div style="columns:2;column-gap:56px;">' +
+      '<div class="culture-cols" style="columns:2;column-gap:56px;">' +
         D.day.notes.map(n => '<div id="' + n.id + '" style="break-inside:avoid;margin-bottom:20px;scroll-margin-top:120px;">' +
           '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px;">' +
             '<a href="#' + n.stopId + '" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8a4b3a;">' + n.ref + ' — ' + esc(n.name) + ' <span style="color:#7a756c;">↩</span></a>' +
@@ -288,20 +310,25 @@ function tablesInner(D) {
         '<span style="flex:1;height:1px;background:#cfc9bd;"></span>' +
         '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#7a756c;">' + esc(D.day.date) + '</span>' +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px;">' +
-        D.dayRestos.map(r => '<div>' +
-          '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:22px;margin:0 0 4px;">' + esc(r.title) + '</h3>' +
-          (r.note ? '<div style="font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;margin-bottom:16px;">' + esc(r.note) + '</div>' : '<div style="margin-bottom:12px;"></div>') +
-          r.items.map(it => '<div style="padding:11px 0;border-top:1px solid #e0dad0;">' +
-            '<div style="display:flex;justify-content:space-between;gap:14px;align-items:baseline;">' +
-              '<span style="font-size:13px;font-weight:600;">' + esc(it.n) + '</span>' +
-              '<span style="font-size:10px;color:#7a756c;white-space:nowrap;">' + esc(pp(it.h)) + '</span>' +
-            '</div>' +
-            (it.a ? '<div style="font-size:11.5px;color:#7a756c;margin-top:3px;">' + esc(it.a) + '</div>' : '') +
-            '<div style="font-size:12.5px;color:#57534b;line-height:1.6;margin-top:3px;">' + esc(it.d) + '</div>' +
-          '</div>').join('') +
-        '</div>').join('') +
-      '</div>' +
+      D.dayRestos.map(r =>
+        '<details class="resto-set">' +
+          '<summary style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">' +
+            '<span class="chev" style="font-size:15px;">›</span>' +
+            '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:22px;margin:0;">' + esc(r.title) + '</h3>' +
+            (r.note ? '<span style="font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#7a756c;">' + esc(r.note) + '</span>' : '') +
+            '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8a4b3a;">' + r.items.length + '</span>' +
+          '</summary>' +
+          '<div style="margin-top:8px;">' +
+            r.items.map(it => '<div style="padding:11px 0;border-top:1px solid #e0dad0;">' +
+              '<div style="display:flex;justify-content:space-between;gap:14px;align-items:baseline;">' +
+                '<span style="font-size:13px;font-weight:600;">' + esc(it.n) + '</span>' +
+                '<span style="font-size:10px;color:#7a756c;white-space:nowrap;">' + esc(pp(it.h)) + '</span>' +
+              '</div>' +
+              (it.a ? '<div style="font-size:11.5px;color:#7a756c;margin-top:3px;">' + esc(it.a) + '</div>' : '') +
+              '<div style="font-size:12.5px;color:#57534b;line-height:1.6;margin-top:3px;">' + esc(it.d) + '</div>' +
+            '</div>').join('') +
+          '</div>' +
+        '</details>').join('') +
     '</div>'
   );
 }
@@ -311,7 +338,7 @@ function renderScreen() {
   const screen = document.getElementById('screen');
   screen.innerHTML =
     /* sticky bar */
-    '<div style="position:sticky;top:0;z-index:30;background:#f4f1ea;border-bottom:1px solid #1a1a18;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 32px;">' +
+    '<div class="topbar" style="position:sticky;top:0;z-index:30;background:#f4f1ea;border-bottom:1px solid #1a1a18;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 32px;">' +
       '<a href="../index.html" style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;">← Alexia en route</a>' +
       '<div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:flex-end;">' +
         '<div style="display:flex;gap:2px;">' +
@@ -349,7 +376,7 @@ function renderScreen() {
       '</div>' +
     '</div>' +
 
-    '<div style="max-width:1180px;margin:0 auto;padding:0 46px;">' +
+    '<div class="wrap" style="max-width:1180px;margin:0 auto;padding:0 46px;">' +
 
       /* lodging */
       '<div class="lodging-grid" style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:40px;padding:46px 0;border-bottom:1px solid #cfc9bd;">' +
@@ -633,7 +660,8 @@ document.getElementById('screen').addEventListener('click', e => {
       document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   } else if (act === 'locate') {
-    // "carte ↗" on a Point Culture note: pinpoint that stop on the map.
+    // "carte ↗": pinpoint that stop on the map (don't toggle the row it sits in).
+    e.preventDefault(); e.stopPropagation();
     const lat = +b.dataset.lat, lng = +b.dataset.lng;
     if (state.map && lat && lng) {
       state.map.setView([lat, lng], 16);
