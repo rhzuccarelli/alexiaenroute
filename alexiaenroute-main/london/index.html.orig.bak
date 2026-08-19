@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4 jours à Londres — Été</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  :root{
+    --ink:#1c2430;
+    --paper:#f6f3ec;
+    --card:#ffffff;
+    --navy:#1d3557;
+    --red:#c1272d;
+    --gold:#b8860b;
+    --line:#e3ddcf;
+    --muted:#6b6455;
+    --lavender:#dedaf0;
+    --lavender-ink:#2e2a4a;
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'Inter', 'Helvetica Neue', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+  }
+  .utility{font-family:var(--sans);}
+  header.hero{
+    background:linear-gradient(160deg, var(--navy) 0%, #0f1e33 100%);
+    color:#f2efe4;
+    padding:56px 24px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:260px; height:260px;
+    border:2px solid rgba(242,239,228,0.12);
+    border-radius:50%;
+  }
+  .lang-switcher{
+    position:absolute;
+    top:16px; right:20px;
+    z-index:5;
+    display:flex;
+    gap:4px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+  }
+  .lang-btn{
+    background:rgba(242,239,228,0.1);
+    border:1px solid rgba(242,239,228,0.25);
+    color:#c9d2de;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.04em;
+    padding:5px 10px;
+    border-radius:20px;
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .lang-btn:hover{
+    background:rgba(242,239,228,0.18);
+    color:#fff;
+  }
+  .lang-btn.active{
+    background:#f2efe4;
+    color:var(--navy);
+    border-color:#f2efe4;
+  }
+  .eyebrow{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    font-size:0.72rem;
+    color:#d7c9a0;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-size:3.4rem;
+    margin:0 0 10px;
+    font-weight:500;
+    font-style:italic;
+    letter-spacing:-0.01em;
+    line-height:1.05;
+  }
+  .sub{
+    font-family:var(--sans);
+    color:#c9d2de;
+    font-size:1rem;
+    max-width:640px;
+  }
+  .stats{
+    display:flex;
+    gap:28px;
+    margin-top:28px;
+    flex-wrap:wrap;
+    font-family:var(--sans);
+  }
+  .stat b{display:block; font-size:1.6rem; font-family:var(--serif); font-weight:500; color:#fff;}
+  .stat span{font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:#a9b6c6;}
+
+  nav.days{
+    position:sticky; top:0; z-index:20;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    overflow-x:auto;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+  }
+  nav.days button{
+    flex:0 0 auto;
+    padding:14px 20px;
+    background:none;
+    border:none;
+    border-bottom:3px solid transparent;
+    font-size:0.85rem;
+    color:var(--muted);
+    cursor:pointer;
+    white-space:nowrap;
+    letter-spacing:0.02em;
+  }
+  nav.days button.active{
+    color:var(--navy);
+    border-bottom-color:var(--red);
+    font-weight:600;
+  }
+
+  main{max-width:900px; margin:0 auto; padding:32px 20px 80px;}
+
+  .lodging{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 22px;
+    margin-bottom:36px;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+  .lodging .icon{font-size:1.8rem;}
+  .lodging h3{margin:0 0 4px; font-family:var(--serif); font-size:1.2rem; font-weight:500; color:var(--navy);}
+  .lodging p{margin:2px 0; font-family:'Helvetica Neue', Arial, sans-serif; font-size:0.88rem; color:var(--muted);}
+  .day-option{
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:28px;
+  }
+  .day-option-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+  }
+  .day-option-head .badge{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.7rem;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--navy);
+    color:#fff;
+    padding:4px 12px;
+    border-radius:20px;
+  }
+  .day-option-head h3{margin:0; font-family:var(--serif); font-size:1.3rem; font-weight:500;}
+  .day-option .timeline{margin-top:0;}
+  .tag{
+    display:inline-block;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    background:#fbeee0;
+    color:var(--gold);
+    padding:2px 8px;
+    border-radius:20px;
+    margin-top:6px;
+  }
+
+  .day-panel{display:none;}
+  .day-panel.active{display:block;}
+
+  .day-head{
+    margin-bottom:22px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--ink);
+  }
+  .day-head .d{font-family:var(--sans); text-transform:uppercase; letter-spacing:0.18em; font-size:0.72rem; font-weight:700; color:var(--red);}
+  .day-head h2{margin:6px 0 0; font-family:var(--serif); font-size:2.3rem; font-weight:500; font-style:italic; letter-spacing:-0.01em; line-height:1.1;}
+  .day-head p{font-family:var(--sans); color:var(--muted); font-size:0.88rem; margin:8px 0 0;}
+
+  .timeline{position:relative; padding-left:26px;}
+  .timeline::before{
+    content:"";
+    position:absolute; left:6px; top:6px; bottom:6px;
+    width:1px; background:var(--line);
+  }
+  .stop{
+    position:relative;
+    margin-bottom:22px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .stop::before{
+    content:"";
+    position:absolute; left:-26px; top:18px;
+    width:11px; height:11px;
+    border-radius:50%;
+    background:var(--navy);
+    border:2px solid var(--paper);
+  }
+  .stop.restaurant::before{background:var(--red);}
+  .stop.walk::before{background:var(--gold);}
+  .stop-top{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap;
+  }
+  .stop-top .time{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.75rem; color:var(--muted); font-weight:600;
+  }
+  .stop h4{margin:2px 0 4px; font-family:var(--serif); font-size:1.22rem; font-weight:600; letter-spacing:-0.005em;}
+  .stop .cat{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.65rem; text-transform:uppercase; letter-spacing:0.06em;
+    padding:2px 8px; border-radius:20px; background:#eef2f6; color:var(--navy);
+  }
+  .stop.restaurant .cat{background:#fbe9e9; color:var(--red);}
+  .stop.walk .cat{background:#fbf3e0; color:var(--gold);}
+  .stop p.desc{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.88rem; color:#3d3a34; margin:4px 0 0;
+  }
+  .option-list{
+    margin-top:8px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.85rem;
+  }
+  .option-list div{padding:3px 0; color:#3d3a34;}
+  .option-list b{color:var(--navy);}
+
+  section.map-section{
+    margin-top:56px;
+    border-top:1px solid var(--line);
+    padding-top:36px;
+  }
+  section.map-section h2{font-size:1.5rem; font-weight:400; margin-bottom:6px;}
+  section.map-section p{font-family:'Helvetica Neue', Arial, sans-serif; color:var(--muted); font-size:0.88rem; margin-top:0;}
+  #map{
+    height:480px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    margin-top:16px;
+  }
+  .legend{
+    display:flex; gap:18px; flex-wrap:wrap;
+    margin-top:14px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .dot{width:10px; height:10px; border-radius:50%; display:inline-block;}
+
+  footer{
+    text-align:center;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    color:var(--muted);
+    font-size:0.8rem;
+    padding:30px 20px 50px;
+  }
+
+  @media (max-width:600px){
+    h1{font-size:1.9rem;}
+    .stats{gap:18px;}
+  }
+
+  /* --- Impression : version simple, sans mise en page livret --- */
+  @media print{
+    body{background:#fff;}
+    header.hero .lang-switcher, nav.days{ display:none !important; }
+    .day-panel{ display:block !important; }
+    .stop, .lodging, .day-option{ box-shadow:none !important; break-inside:avoid; }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="hero">
+  <div class="lang-switcher">
+    <button class="lang-btn active" data-lang="fr">FR</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="es">ES</button>
+  </div>
+  <div class="eyebrow">Guide de voyage personnel</div>
+  <h1 class="i18n">4 jours à Londres</h1>
+  <div class="sub i18n">Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · les ponts de la Tamise</div>
+  <div class="stats">
+    <div class="stat"><b>5</b><span>Jours</span></div>
+    <div class="stat"><b>5</b><span>Musées</span></div>
+    <div class="stat"><b>1</b><span>Tate Boat 🚤</span></div>
+    <div class="stat"><b>3</b><span>Ponts</span></div>
+    <div class="stat"><b>1</b><span>Soirée West End</span></div>
+  </div>
+</header>
+
+<nav class="days utility">
+  <button class="active i18n" data-day="0">Mercredi 9 Sept · Arrivées</button>
+  <button class="i18n" data-day="1">Jeudi 10 Sept · National Gallery/British Museum & West End</button>
+  <button class="i18n" data-day="2">Vendredi 11 Sept · Les 2 Tate + Tower Bridge</button>
+  <button class="i18n" data-day="3">Samedi 12 Sept · Notting Hill & Camden</button>
+  <button class="i18n" data-day="4">Dimanche 13 Sept · V&amp;A & vol retour</button>
+</nav>
+
+<main>
+
+
+
+  <div class="lodging">
+    <div class="icon">🏨</div>
+    <div>
+      <h3 class="i18n">Logement — Brick Lane, Shoreditch</h3>
+      <p>Flat 8, 202–204 Brick Lane, Tower Hamlets, London, E1 6SA, United Kingdom</p>
+      <p>Quartier Shoreditch / East London · street art, brunchs, marchés · à 5 min à pied du restaurant Smokestak</p>
+      <span class="tag">📍 Sur la carte ci-dessous</span>
+    </div>
+  </div>
+
+  <div class="lodging" style="border-left:4px solid var(--red); flex-direction:column;">
+    <div style="display:flex; gap:14px; align-items:center; margin-bottom:6px;">
+      <div class="icon">🍽️</div>
+      <h3 style="margin:0;">Restaurants proches de l'hôtel — Shoreditch</h3>
+    </div>
+    <div class="option-list" style="margin-top:4px;">
+      <div><b>SMOKESTAK</b> — 35 Sclater St, E1 6LB · BBQ au feu de bois, viandes fumées · pas de réservation ✅ · 🕒 Ven : 12h-15h puis 17h30-23h</div>
+      <div><b>Poppies Fish & Chips</b> — 6-8 Hanbury St, E1 6QR · le fish and chips culte du quartier, déco vintage années 1950, à 3 min à pied du logement 🏛️ · 🕒 Ven : 11h-23h30</div>
+      <div><b>Smoking Goat Shoreditch</b> — 63 Charlotte Rd, EC2A 3QS · cuisine thaïe grillée, épicée et conviviale ✅ · 🕒 Ven : cuisine généralement jusqu'à 23h (vérifier sur place, horaires variables selon les sources)</div>
+      <div><b>Dishoom Shoreditch</b> — 7 Boundary St, E2 7JE · brasserie irano-indienne façon Bombay, incontournable brunch/dîner ✅ · 🕒 Ven : 8h-minuit</div>
+      <div><b>Cecconi's Shoreditch</b> — 10-12 Bethnal Green Rd, E1 6GY (Nobu Hotel Shoreditch) · italien chic, bon pour un dîner plus habillé ✅ · 🕒 Ven : 7h30-23h</div>
+      <div><b>Som Saa</b> — 43a Commercial St, E1 6BD · thaï régional dans un ancien entrepôt textile, très bien noté</div>
+    </div>
+    <span class="tag">🔥 Toutes à moins de 15 min à pied du logement</span>
+  </div>
+
+  <!-- JOUR 0 -->
+  <div class="day-panel active" id="day-0">
+    <div class="day-head">
+      <div class="d">Mercredi 9 Septembre</div>
+      <h2 class="i18n">Arrivées échelonnées</h2>
+      <p class="i18n">Chantal arrive dans l'après-midi · Ricardo et Alexia arrivent en soirée</p>
+    </div>
+    <div class="timeline">
+      <div class="stop">
+        <div class="stop-top"><span class="time">14h00</span><span class="cat">Arrivée</span></div>
+        <h4 class="i18n">Arrivée de Chantal</h4>
+        <p class="desc i18n">Check-in au logement, Flat 8, 202-204 Brick Lane · dépose des bagages.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">15h00</span><span class="cat">Balade</span></div>
+        <h4 class="i18n">Old Spitalfields Market & Brick Lane</h4>
+        <p class="desc i18n">Après-midi tranquille pour Chantal en attendant les autres · marché couvert historique, boutiques vintage, street art de Brick Lane · à deux pas du logement, idéal pour un premier contact avec le quartier. En chemin : Beigel Bake et Beigel Shop, les deux boutiques de bagels historiques et rivales de Brick Lane, ouvertes tard, parfaites pour un encas. <b>Histoire :</b> Spitalfields Market existe depuis 1638, initialement marché de fruits et légumes ; Brick Lane doit son nom aux briqueteries qui bordaient la rue au XVIe siècle. Le quartier a accueilli des vagues successives d'immigration (huguenots, juifs d'Europe de l'Est, puis bangladais), chacune laissant sa trace — d'où le mélange unique de synagogues devenues mosquées, de curry houses et de street art. <b>Pourquoi y aller :</b> c'est l'histoire vivante de l'immigration londonienne, condensée dans quelques rues.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">21h50</span><span class="cat">Vol</span></div>
+        <h4 class="i18n">Atterrissage de Ricardo et Alexia — Gatwick</h4>
+        <p class="desc i18n">Vol BCN → London Gatwick, départ 20h30, arrivée 21h50 · puis Gatwick Express + métro jusqu'à Brick Lane (~1h-1h15).</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">23h00</span><span class="cat">Arrivée</span></div>
+        <h4 class="i18n">Arrivée de Ricardo et Alexia à l'hôtel</h4>
+        <p class="desc i18n">Check-in au logement · retrouvailles avec Chantal.</p>
+      </div>
+      <div class="stop restaurant">
+        <div class="stop-top"><span class="time">23h30</span><span class="cat">Dîner</span></div>
+        <h4 class="i18n">Encas de bienvenue</h4>
+        <p class="desc i18n">À cette heure, mieux vaut un encas léger que sortir dîner · Beigel Bake (ouvert 24h/24) ou repas léger à l'appartement · dîner ensemble prévu plutôt le lendemain soir.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOUR 1 -->
+  <div class="day-panel" id="day-1">
+    <div class="day-head">
+      <div class="d">Jeudi 10 Septembre</div>
+      <h2 class="i18n">Centre historique & soirée West End</h2>
+      <p class="i18n">British Museum, Covent Garden, Trafalgar Square et un spectacle en soirée</p>
+    </div>
+    <div class="timeline">
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">09h45</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Holborn</h4>
+        <p class="desc i18n">Depuis l'hôtel (Brick Lane) : marcher ~10 min jusqu'à <b>Liverpool Street</b>, puis <b>Central line</b> direction ouest jusqu'à <b>Holborn</b> (4 arrêts : Bank, St Paul's, Chancery Lane, Holborn) · ~10 min de trajet, sans changement · Hunterian Museum et British Museum sont tous deux à moins de 10 min à pied de la sortie du métro.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">10h00</span><span class="cat">Option A</span></div>
+        <h4 class="i18n">Hunterian Museum</h4>
+        <p class="desc i18n">38-43 Lincoln's Inn Fields, Holborn · <b>si Option A choisie, à faire en premier</b> (la National Gallery est trop loin du British Museum pour l'enchaîner après, mais tout près de Covent Garden) · collection médicale historique du chirurgien John Hunter (XVIIIe s.) : spécimens anatomiques, squelettes, instruments chirurgicaux d'époque · fascinant pour les curieux d'histoire de la médecine, mais clinique et parfois cru. <b>🕒 Ouvert mar-sam 10h-17h · Gratuit</b> (don de £3 suggéré) · billet horodaté gratuit recommandé en ligne. <b>Histoire :</b> John Hunter (1728-1793), pionnier de la chirurgie moderne et de l'anatomie comparée, a légué sa collection personnelle au Royal College of Surgeons ; le musée a rouvert en 2023 après 6 ans de rénovation. <b>À ne pas rater :</b> les instruments chirurgicaux de Joseph Lister (pionnier de l'antisepsie), les tables anatomiques du XVIIe siècle réalisées pour le diariste John Evelyn, et les spécimens pathologiques qui ont formé des générations de chirurgiens.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">10h45</span><span class="cat">Option A</span></div>
+        <h4 class="i18n">Sir John Soane's Museum</h4>
+        <p class="desc i18n">13 Lincoln's Inn Fields · littéralement sur la même place que le Hunterian Museum, à traverser le square · maison de l'architecte néoclassique Sir John Soane, préservée telle qu'il l'a laissée à sa mort en 1837 · intérieur labyrinthique et spectaculaire : miroirs et perspectives truquées démultipliant l'espace, antiquités entassées du sol au plafond, un sarcophage égyptien en albâtre dans la cave. <b>🕒 Ouvert mer-dim 10h-17h (dernière entrée 16h30) · Gratuit</b> — pas de réservation nécessaire, mais file d'attente possible (capacité limitée). <b>Histoire :</b> Soane, architecte de la Banque d'Angleterre, a rassemblé ici 20 000 dessins d'architecture, des antiquités, et des œuvres de Turner, Canaletto et Piranèse ; si heureux de recevoir le sarcophage de Seti Ier qu'il organisa une fête de trois jours pour l'occasion. <b>À ne pas rater :</b> la série complète de "La Carrière d'un libertin" de Hogarth (derrière des panneaux à ouvrir soi-même), le sarcophage de Seti Ier, et la Breakfast Room, chef-d'œuvre de lumière et de miroirs.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">12h00</span><span class="cat">Option A</span></div>
+        <h4 class="i18n">National Gallery</h4>
+        <p class="desc i18n">Trafalgar Square · entrée gratuite · plus de 2600 tableaux d'art occidental, de 1250 à 1900 · <b>enchaîné après le Hunterian Museum et Soane's Museum, sur le chemin naturel vers Covent Garden</b>. <b>🕒 Ouvert 10h-18h le jeudi</b> (jusqu'à 21h le vendredi uniquement). Visite resserrée à ~1h. <b>Histoire :</b> fondée en 1824, construite dès le départ comme collection publique plutôt qu'héritée d'une collection royale privée. <b>À ne pas rater :</b> les Tournesols de Van Gogh (salle 43, souvent moins fréquentée en fin de journée), le Bassin aux nymphéas de Monet, les Ambassadeurs de Holbein, le Portrait des Arnolfini de Van Eyck, et les salles impressionnistes/post-impressionnistes (Renoir, Cézanne, Seurat). Entrer par la Sainsbury Wing pour suivre l'ordre chronologique.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">10h00</span><span class="cat">Option B</span></div>
+        <h4 class="i18n">British Museum</h4>
+        <p class="desc i18n">Collections mondiales · pierre de Rosette, frises du Parthénon · entrée gratuite. <b>🕒 Ouvert 10h-17h</b> (pas d'horaire prolongé le jeudi, contrairement au vendredi) — prévoir de sortir avant 17h. Visite resserrée à ~1h30. <b>Histoire :</b> fondé en 1753 à partir de la collection privée du médecin Hans Sloane, c'est le premier musée national public au monde, installé dans son bâtiment néoclassique actuel depuis 1852. <b>À ne pas rater :</b> la pierre de Rosette (salle 4, clé du déchiffrement des hiéroglyphes), les frises du Parthénon/marbres d'Elgin (salle 18), les momies égyptiennes et le sarcophage de Nesperennub (salles 62-63), le trésor de Sutton Hoo (salle 41, casque anglo-saxon), et la Grande Cour couverte de verre (Great Court), la plus grande place couverte d'Europe.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">11h30</span><span class="cat">Option B</span></div>
+        <h4 class="i18n">Hunterian Museum</h4>
+        <p class="desc i18n">38-43 Lincoln's Inn Fields, Holborn · à 10 min à pied du British Museum · <b>si Option B choisie, à faire après</b> · collection médicale historique du chirurgien John Hunter (XVIIIe s.) : spécimens anatomiques, squelettes, instruments chirurgicaux d'époque · fascinant pour les curieux d'histoire de la médecine, mais clinique et parfois cru. <b>🕒 Ouvert mar-sam 10h-17h · Gratuit</b> (don de £3 suggéré) · billet horodaté gratuit recommandé en ligne. Visite resserrée à ~45 min. <b>Histoire :</b> John Hunter (1728-1793), pionnier de la chirurgie moderne et de l'anatomie comparée, a légué sa collection personnelle au Royal College of Surgeons ; le musée a rouvert en 2023 après 6 ans de rénovation. <b>À ne pas rater :</b> les instruments chirurgicaux de Joseph Lister (pionnier de l'antisepsie), les tables anatomiques du XVIIe siècle réalisées pour le diariste John Evelyn, et les spécimens pathologiques qui ont formé des générations de chirurgiens.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">12h15</span><span class="cat">Option B</span></div>
+        <h4 class="i18n">Sir John Soane's Museum</h4>
+        <p class="desc i18n">13 Lincoln's Inn Fields · littéralement sur la même place que le Hunterian Museum, à traverser le square · maison de l'architecte néoclassique Sir John Soane, préservée telle qu'il l'a laissée à sa mort en 1837 · intérieur labyrinthique et spectaculaire : miroirs et perspectives truquées démultipliant l'espace, antiquités entassées du sol au plafond, un sarcophage égyptien en albâtre dans la cave. <b>🕒 Ouvert mer-dim 10h-17h (dernière entrée 16h30) · Gratuit</b> — pas de réservation nécessaire, mais file d'attente possible (capacité limitée). Visite resserrée à ~45 min. <b>Histoire :</b> Soane, architecte de la Banque d'Angleterre, a rassemblé ici 20 000 dessins d'architecture, des antiquités, et des œuvres de Turner, Canaletto et Piranèse ; si heureux de recevoir le sarcophage de Seti Ier qu'il organisa une fête de trois jours pour l'occasion. <b>À ne pas rater :</b> la série complète de "La Carrière d'un libertin" de Hogarth (derrière des panneaux à ouvrir soi-même), le sarcophage de Seti Ier, et la Breakfast Room, chef-d'œuvre de lumière et de miroirs.</p>
+      </div>
+
+      <div class="lodging" style="border-left:4px solid var(--red); flex-direction:column;">
+        <div style="display:flex; gap:14px; align-items:center; margin-bottom:6px;">
+          <div class="icon">🍽️</div>
+          <h3 style="margin:0;">Déjeuner — autour de Covent Garden (13h00)</h3>
+        </div>
+        <div class="option-list" style="margin-top:4px;">
+          <div><b>Flat Iron</b> — 17-18 Henrietta St · steak-frites généreux et pas cher · ~£15-20/pers · pas de réservation ✅</div>
+          <div><b>Dishoom Covent Garden</b> — 12 Upper St Martin's Lane · brasserie irano-indienne, biryanis et black daal · ~£20-25/pers</div>
+          <div><b>Barrafina Covent Garden</b> — 43 Drury Lane · tapas espagnoles au comptoir · ~£30-40/pers · pas de réservation, file rapide</div>
+          <div><b>Henri</b> — bord de la Piazza · bistrot français, steak frites et moules marinière · ~£25-35/pers</div>
+          <div><b>Wahaca</b> — mexicain coloré, tacos et burritos · ~£15-20/pers · rapide</div>
+        </div>
+        <span class="tag">📍 Tous à moins de 10 min à pied de Covent Garden</span>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">13h45</span><span class="cat">Balade</span></div>
+        <h4 class="i18n">Covent Garden</h4>
+        <p class="desc i18n">Halle marchande couverte, artistes de rue, boutiques et cafés. <b>Histoire :</b> ancien jardin des moines de Westminster Abbey ("Convent Garden"), transformé en marché de fruits et légumes dès 1654 puis en marché couvert victorien en 1830 ; les Beatles y ont donné un concert improvisé sur le balcon de l'Apple Corps en 1969, non loin. <b>Pourquoi y aller :</b> ambiance vivante et artistes de rue certifiés (audition officielle requise pour performer ici), architecture victorienne préservée, point de départ historique du West End théâtral juste à côté.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">15h15</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Trafalgar Square</h4>
+        <p class="desc i18n">Colonne de Nelson, fontaines · juste devant la National Gallery (déjà visitée le matin si Option A choisie). <b>Histoire :</b> aménagée en 1844 pour commémorer la victoire navale britannique à Trafalgar (1805) contre la flotte franco-espagnole ; la colonne (52m) est surmontée d'une statue de l'amiral Nelson, mort pendant la bataille. Les quatre lions de bronze à sa base ont été fondus à partir de canons français capturés. <b>Pourquoi y aller :</b> cœur symbolique de Londres, lieu de rassemblements historiques (manifestations, célébrations du Nouvel An), et point de vue idéal sur la National Gallery juste derrière.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">16h15</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Fortnum & Mason</h4>
+        <p class="desc i18n">Grand magasin emblématique de Piccadilly depuis 1707 · épicerie fine, thés, façade et vitrines élégantes · à 5 min à pied de Piccadilly Circus, où se trouve le West End. <b>🕒 Ouvert 10h-20h (jeudi inclus).</b> <b>Histoire :</b> fondé par William Fortnum (valet de chambre royal) et Hugh Mason en 1707 ; c'est Fortnum's qui aurait inventé le Scotch egg comme en-cas de voyage pour les diligences. Fournisseur officiel de la famille royale depuis des générations. <b>Pourquoi y aller :</b> l'horloge mécanique en façade s'anime chaque heure avec des automates de Fortnum et Mason, et le rayon épicerie/thé au rez-de-chaussée vaut le coup d'œil même sans acheter. <b>🛍️ À acheter :</b> thé au jasmin pour Chantal, au rayon thés du rez-de-chaussée.</p>
+      </div>
+
+      <div class="lodging" style="border-left:4px solid var(--red); flex-direction:column;">
+        <div style="display:flex; gap:14px; align-items:center; margin-bottom:6px;">
+          <div class="icon">🍽️</div>
+          <h3 style="margin:0;">Dîner pré-spectacle — Soho / Piccadilly (17h30-18h30)</h3>
+        </div>
+        <div class="option-list" style="margin-top:4px;">
+          <div><b>Barrafina</b> — Soho · tapas espagnoles au comptoir · ~£30-40/pers · pas de réservation, souvent la file mais ça tourne vite</div>
+          <div><b>Bocca di Lupo</b> — Archer St · italien régional, partage · ~£35-45/pers</div>
+          <div><b>Mildreds</b> — Soho · végétarien/végan généreux · ~£20-25/pers</div>
+          <div><b>Bao</b> — Soho · bao taïwanais, rapide et convivial · ~£20-25/pers</div>
+          <div><b>The Palomar</b> — Rupert St · cuisine levantine/israélienne · ~£35-45/pers · réservation conseillée</div>
+        </div>
+        <span class="tag">📍 Tous à 5-10 min à pied des théâtres — dîner avant le spectacle, cuisines sûres à cette heure</span>
+      </div>
+
+      <div class="stop">
+        <div class="stop-top"><span class="time">19h30</span><span class="cat">Soirée</span></div>
+        <h4 class="i18n">Soirée West End</h4>
+        <p class="desc i18n">Comédie musicale ou spectacle dans le quartier des théâtres (Piccadilly / Leicester Square) — équivalent londonien de Broadway.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOUR 2 -->
+  <div class="day-panel" id="day-2">
+    <div class="day-head">
+      <div class="d">Vendredi 11 Septembre</div>
+      <h2 class="i18n">Les deux Tate — en bateau sur la Tamise</h2>
+      <p class="i18n">Tate Modern, St Paul's, Tate Boat vers Tate Britain, puis Westminster à pied</p>
+    </div>
+    <div class="timeline">
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">09h35</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Tate Modern</h4>
+        <p class="desc i18n">Depuis l'hôtel (Brick Lane) : marcher ~10 min jusqu'à <b>Liverpool Street</b>, puis <b>Central line</b> direction ouest jusqu'à <b>St Paul's</b> (4 arrêts : Bank, St Paul's) · ~8-10 min de trajet, sans changement · puis ~10-12 min à pied en traversant le Millennium Bridge jusqu'à Tate Modern (vue superbe sur la cathédrale en chemin).</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">10h00</span><span class="cat">Musée</span></div>
+        <h4 class="i18n">Tate Modern</h4>
+        <p class="desc i18n">Ancienne centrale électrique de Bankside · art moderne et contemporain · Turbine Hall spectaculaire · entrée gratuite pour la collection permanente. <b>🕒 Ouvert 10h-21h le vendredi</b> (horaires prolongés par rapport à Lun-Jeu, pas de contrainte horaire aujourd'hui). <b>Histoire :</b> ancienne centrale électrique désaffectée (Bankside Power Station, construite dans les années 1950-60 par Giles Gilbert Scott, aussi architecte des cabines téléphoniques rouges), reconvertie en musée en 2000 — l'un des projets de reconversion industrielle les plus réussis au monde. <b>À ne pas rater :</b> les œuvres de Rothko (salle dédiée), les Water Lilies de Monet, les installations souvent spectaculaires dans l'immense Turbine Hall (varie selon la période), et Picasso/Matisse dans les collections permanentes.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">11h45</span><span class="cat">Balade</span></div>
+        <h4 class="i18n">Millennium Bridge</h4>
+        <p class="desc i18n">Passerelle piétonne suspendue reliant la Tate Modern à St Paul's · vue emblématique sur la cathédrale · juste à côté de la Tate Modern. <b>Histoire :</b> inaugurée en 2000 pour le nouveau millénaire, elle a dû fermer 2 jours après son ouverture à cause d'un balancement latéral inattendu sous le pas des piétons ("Millennium Wobble") — rouverte seulement en 2002 après modifications. <b>Pourquoi y aller :</b> premier pont piéton sur la Tamise depuis plus d'un siècle, avec l'un des meilleurs axes de vue de Londres, cadrant St Paul's parfaitement dans son alignement.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">12h15</span><span class="cat">Monument</span></div>
+        <h4 class="i18n">St Paul's Cathedral</h4>
+        <p class="desc i18n">Dôme baroque de Christopher Wren · vue extérieure ou montée jusqu'à la Whispering Gallery. <b>🕒 Ouvert lun-sam 8h30-16h30 (dernière entrée 16h00)</b> — visite touristique fermée le dimanche. <b>Histoire :</b> reconstruite par Christopher Wren après la destruction de l'édifice médiéval par le Grand Incendie de Londres (1666), achevée en 1710. A survécu miraculeusement au Blitz de 1940 — la photo du dôme intact au milieu des fumées de bombardement est devenue une icône de la résistance britannique. Lieu des funérailles de Churchill (1965) et du mariage de Charles et Diana (1981). <b>À ne pas rater :</b> la Whispering Gallery (murmurer contre le mur et être entendu à 30m de distance), la crypte (tombeaux de Nelson et Wellington), et la vue depuis la Golden Gallery tout en haut du dôme (528 marches).</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">13h00</span><span class="cat">Insolite</span></div>
+        <h4 class="i18n">Postman's Park</h4>
+        <p class="desc i18n">King Edward Street · à 5 min à pied de St Paul's · petit jardin victorien abritant le Mémorial aux actes d'héroïsme ordinaire : un mur de plaques en céramique racontant chacune l'histoire d'un Londonien anonyme mort en sauvant la vie d'un autre · émouvant et méconnu. <b>🕒 Accès libre, ouvert tous les jours (jardin public).</b> Gratuit.</p>
+      </div>
+
+      <div class="lodging" style="border-left:4px solid var(--red); flex-direction:column;">
+        <div style="display:flex; gap:14px; align-items:center; margin-bottom:6px;">
+          <div class="icon">🍽️</div>
+          <h3 style="margin:0;">Restaurants proches de St Paul's / Borough (12h-13h)</h3>
+        </div>
+        <div class="option-list" style="margin-top:4px;">
+          <div><b>Padella</b> — 6 Southwark St · Italien, pâtes fraîches · ~£15-20/pers · pas de réservation</div>
+          <div><b>Arabica Bar and Kitchen</b> — Borough Market · levantin, mezze · ~£20-25/pers</div>
+          <div><b>Watch House</b> — Bermondsey St · café/sandwichs rapides · ~£10-15/pers</div>
+          <div><b>Casse-Croûte</b> — 109 Bermondsey St · bistrot français · ~£30-35/pers</div>
+        </div>
+        <span class="tag">📍 Tous à moins de 10 min de Postman's Park / Old Operating Theatre</span>
+      </div>
+
+      <div class="stop">
+        <div class="stop-top"><span class="time">13h35</span><span class="cat">Insolite</span></div>
+        <h4 class="i18n">Old Operating Theatre Museum</h4>
+        <p class="desc i18n">9a St Thomas Street, juste à côté de Borough Market · ~15 min à pied depuis Postman's Park · plus ancien théâtre d'opération chirurgical d'Europe encore existant (1822), redécouvert par hasard en 1956 dans les combles d'une église · instruments chirurgicaux d'époque, avant l'anesthésie et les antiseptiques · accès par un escalier en colimaçon étroit. <b>🕒 Ouvert jeu-dim 10h30-17h00 (dernière entrée 16h15)</b> — ouvert le vendredi, jour de la visite. Payant (quelques livres), ~40 min.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">14h30</span><span class="cat">Bateau</span></div>
+        <h4 class="i18n">Tate Boat — Bankside Pier → Millbank Pier</h4>
+        <p class="desc i18n">Navette fluviale directe entre les deux Tate · ~18 min sur la Tamise · vue sur Big Ben, le London Eye et le Parlement · billet combiné possible avec l'entrée Tate Britain.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">15h30</span><span class="cat">Musée</span></div>
+        <h4 class="i18n">Tate Britain</h4>
+        <p class="desc i18n">Art britannique du XVIe siècle à aujourd'hui · Turner, Hockney · bords de la Tamise à Millbank. <b>🕒 Ouvert 10h-18h (dernière entrée 17h30).</b> Visite resserrée à ~1h30. <b>Histoire :</b> ouverte en 1897 grâce au financement du magnat du sucre Henry Tate (qui a aussi donné son nom au sucre Tate & Lyle), sur le site d'une ancienne prison (Millbank Penitentiary). <b>À ne pas rater :</b> les salles Turner (la plus grande collection au monde de l'artiste, léguée par lui-même), les Pré-Raphaélites (Millais, Rossetti), Ophelia de Millais, et les œuvres de Francis Bacon et David Hockney dans les galeries d'art britannique moderne.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">17h00</span><span class="cat">Balade</span></div>
+        <h4 class="i18n">Westminster & Big Ben</h4>
+        <p class="desc i18n">15 min à pied depuis Tate Britain le long de la Tamise, via Victoria Tower Gardens · Houses of Parliament, Big Ben, Westminster Abbey. <b>Histoire :</b> le Palais de Westminster actuel date de 1840-1870 (reconstruit après un incendie), sur un site utilisé comme résidence royale et siège du pouvoir depuis le XIe siècle. "Big Ben" est en réalité le nom de la cloche (13,7 tonnes), pas de la tour elle-même (officiellement Elizabeth Tower depuis 2012). Westminster Abbey a accueilli tous les couronnements royaux depuis 1066. <b>Pourquoi y aller :</b> c'est le cœur institutionnel du Royaume-Uni, gothique revival spectaculaire, encore plus impressionnant à la tombée du jour quand les tours s'illuminent.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">17h45</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Tower Hill</h4>
+        <p class="desc i18n">District/Circle line, direct depuis Westminster · ~20-25 min · sur le chemin du retour vers l'hôtel.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">18h15</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Tower of London (extérieur)</h4>
+        <p class="desc i18n">Simple passage devant la forteresse, sans visite payante · vue sur les douves et les tours depuis l'extérieur · à combiner avec Tower Bridge juste à côté. <b>Histoire :</b> fondée par Guillaume le Conquérant en 1078 (la Tour Blanche centrale), elle a servi tour à tour de palais royal, de prison (Anne Boleyn y a été exécutée en 1536), d'arsenal, et abrite aujourd'hui les joyaux de la Couronne. Les corbeaux qui y vivent sont protégés par la légende : si les corbeaux quittent la Tour, la Couronne tombera. <b>Pourquoi la voir même de l'extérieur :</b> presque 1000 ans d'histoire concentrés sur un site, silhouette immédiatement reconnaissable au bord de la Tamise.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">18h30</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Tower Bridge</h4>
+        <p class="desc i18n">Passage à pied sur le pont-levis le plus photographié de Londres · lumière du soir agréable. <b>Histoire :</b> construit entre 1886 et 1894 pour désengorger le trafic tout en préservant l'accès des grands navires au port de Londres — d'où son mécanisme de bascule (bascule bridge), toujours fonctionnel aujourd'hui (les deux tablettes se soulèvent encore pour laisser passer de grands bateaux, plusieurs fois par semaine). Souvent confondu à tort avec "London Bridge" par les touristes. <b>Pourquoi y aller :</b> l'un des ponts les plus reconnaissables au monde, architecture gothique victorienne, passerelle vitrée en hauteur (payante) offrant une vue plongeante sur la Tamise.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">18h50</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">London Bridge</h4>
+        <p class="desc i18n">15 min à pied depuis Tower Bridge · vue sur The Shard · puis retour à pied ou en métro vers Brick Lane (~15-20 min). <b>Histoire :</b> le pont actuel date de 1973 (le précédent, du XIXe siècle, a été vendu et reconstruit pierre par pierre en Arizona, aux États-Unis, en 1968 — une légende urbaine tenace veut que l'acheteur américain ait cru acheter Tower Bridge par erreur). Un pont existe à cet emplacement depuis l'époque romaine. <b>Pourquoi y aller :</b> moins spectaculaire que Tower Bridge mais stratégique pour la vue sur The Shard et le quartier de la City qui s'illumine en soirée.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">19h05</span><span class="cat">Option</span></div>
+        <h4 class="i18n">Leadenhall Market</h4>
+        <p class="desc i18n">~10-12 min à pied depuis London Bridge, dans la City · halle marchande victorienne couverte, verrière en fer et verre peinte de vert et bordeaux, pavage d'origine. <b>Pourquoi y aller :</b> c'est ici qu'a été tourné le passage vers le Chemin de Traverse dans les films Harry Potter (l'entrée du Leaky Cauldron était filmée à l'entrée de Bull's Head Passage) · l'un des plus beaux exemples d'architecture marchande victorienne encore en activité à Londres, avec des bâtiments romains sous les fondations (ancien forum de Londinium). <b>⚠️ Impact horaire :</b> détour optionnel de ~20-25 min avant de rejoindre le Viktor Wynd Museum (rallonge le trajet vers Hackney) · à faire seulement si l'envie est là, sinon foncer directement vers Hackney. <b>🕒 Accès libre, ambiance surtout animée en semaine aux heures de bureau</b> (plus calme le soir, mais l'architecture reste visible).</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">19h43</span><span class="cat">Insolite</span></div>
+        <h4 class="i18n">Viktor Wynd Museum of Curiosities</h4>
+        <p class="desc i18n">11 Mare Street, Hackney · ~30-35 min de trajet depuis London Bridge (bus ou métro avec correspondance) · cabinet de curiosités excentrique : taxidermie, têtes réduites, art surréaliste et occulte, également bar à cocktails à l'étage · ambiance décalée façon Wunderkammer victorien, pour les simplement curieux. <b>🕒 Ouvert mar-ven 15h-23h · sam 12h-23h · dim 12h-22h · Entrée £12</b> (billet horodaté requis) · possibilité de finir la soirée au bar sur place. <b>🎟️ Créneaux de réservation vendredi :</b> 18h00, 18h45, 19h30 ou 20h15.</p>
+      </div>
+      <div class="stop restaurant">
+        <div class="stop-top"><span class="time">21h00</span><span class="cat">Dîner</span></div>
+        <h4 class="i18n">Dîner près de l'hôtel</h4>
+        <p class="desc i18n">De retour à Shoreditch après la visite du musée · Smokestak, Dishoom ou Poppies Fish & Chips.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOUR 3 -->
+  <div class="day-panel" id="day-3">
+    <div class="day-head">
+      <div class="d">Samedi 12 Septembre</div>
+      <h2 class="i18n">Notting Hill, Freud Museum & Camden</h2>
+      <p class="i18n">Portobello Road, la maison de Sigmund Freud, marché alternatif et pub légendaire</p>
+    </div>
+    <div class="timeline">
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">09h30</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Notting Hill</h4>
+        <p class="desc i18n">Depuis l'hôtel (Brick Lane) : marcher ~10 min jusqu'à <b>Liverpool Street</b>, puis <b>Central line</b> direction ouest jusqu'à <b>Notting Hill Gate</b> (10 arrêts : Bank, St Paul's, Chancery Lane, Holborn, Tottenham Court Road, Oxford Circus, Bond Street, Marble Arch, Lancaster Gate, Queensway, Notting Hill Gate) · ~25-30 min de trajet, sans changement.</p>
+      </div>
+      <div class="stop restaurant">
+        <div class="stop-top"><span class="time">10h00</span><span class="cat">Petit-déj</span></div>
+        <h4 class="i18n">Cheeky Scone</h4>
+        <p class="desc i18n">43 Pembridge Road, W11 3HG · à 2-3 min à pied de Notting Hill Gate · boutique entièrement dédiée au scone, dans toutes ses déclinaisons (nature, citron-myrtille, chocolat, fromage...) avec confiture et crème caillée. <b>🕒 Ouvert samedi 10h-17h30.</b> File d'attente fréquente le samedi matin, mieux vaut y être tôt.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">10h45</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Portobello Road Market</h4>
+        <p class="desc i18n">Le marché aux puces/antiquités le plus connu de Londres, complet et animé le samedi (jour idéal) · maisons pastel typiques du quartier, rendu célèbre par le film éponyme.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">11h45</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Hampstead</h4>
+        <p class="desc i18n">Central line puis changement (Jubilee ou bus) vers Finchley Road/Swiss Cottage · ~30-35 min.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">12h20</span><span class="cat">Musée</span></div>
+        <h4 class="i18n">Freud Museum</h4>
+        <p class="desc i18n">20 Maresfield Gardens, Hampstead · ancienne maison de Sigmund Freud, son cabinet et son célèbre divan préservés · petit musée intimiste. <b>🕒 Ouvert 10h30-17h00 le samedi.</b></p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">13h35</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Camden</h4>
+        <p class="desc i18n">Pas de ligne directe en métro depuis le Freud Museum · le plus simple : <b>bus 268</b> depuis l'arrêt Fitzjohn's Avenue (2 min à pied du musée) jusqu'à <b>Camden Town</b>, ~15-20 min · alternative en métro : marcher ~10 min jusqu'à <b>Finchley Road</b> (Jubilee/Metropolitan line), puis Jubilee line jusqu'à Baker Street, puis Northern line jusqu'à <b>Camden Town</b> (1 changement) · ~25 min au total.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">13h50</span><span class="cat">Passage</span></div>
+        <h4 class="i18n">Camden Market</h4>
+        <p class="desc i18n">Étals, mode alternative, ambiance unique · à parcourir sans se presser. <b>🕒 Ouvert 7j/7, 10h-18h.</b></p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">14h30</span><span class="cat">Insolite</span></div>
+        <h4 class="i18n">The Hawley Arms</h4>
+        <p class="desc i18n">2 Castlehaven Road · pub légendaire fréquenté par Amy Winehouse dans les années 2000 · un passage rapide ou un verre pour les passionnés de musique.</p>
+      </div>
+      <div class="stop restaurant">
+        <div class="stop-top"><span class="time">15h00</span><span class="cat">Déjeuner</span></div>
+        <h4 class="i18n">Camden Lock</h4>
+        <p class="desc i18n">Bords du Regent's Canal · street food internationale · déjeuner tardif/encas pour finir la journée.</p>
+      </div>
+    </div>
+
+    <div class="lodging" style="border-left:4px solid var(--red);">
+      <div class="icon">🍽️</div>
+      <div>
+        <h3 style="margin:0 0 4px;">Dîner samedi soir — proche de l'hôtel</h3>
+        <p style="margin:0;">Soirée libre après le déjeuner tardif à Camden · retour à Shoreditch pour dîner, voir la liste "Restaurants proches de l'hôtel" en haut du programme.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOUR 4 -->
+  <div class="day-panel" id="day-4">
+    <div class="day-head">
+      <div class="d">Dimanche 13 Septembre</div>
+      <h2 class="i18n">V&amp;A & départ vol 17h40</h2>
+      <p class="i18n">Design & arts décoratifs, passage au Natural History Museum, option Science Museum · Tower Bridge, Tower of London et London Bridge déjà vus le jeudi</p>
+    </div>
+    <div class="lodging" style="border-left:4px solid var(--navy); margin-bottom:16px;">
+      <div class="icon">✈️</div>
+      <div>
+        <h3 class="i18n">Vol retour — Ricardo, Alexia & Chantal</h3>
+        <p>Gatwick → BCN · départ 17h40, arrivée 20h50 · <b>pas de bagage en soute, enregistrement en ligne fait</b></p>
+        <p>Depuis South Kensington : métro vers Victoria (~15 min) puis Gatwick Express (~30 min, un train toutes les 15 min) · départ vers 14h30, arrivée aéroport ~15h30, soit ~2h10 de marge — suffisant sans bagage/enregistrement à faire sur place.</p>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">09h20</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers South Kensington</h4>
+        <p class="desc i18n">Depuis l'hôtel (Brick Lane) : marcher ~10 min jusqu'à <b>Liverpool Street</b>, puis <b>Circle line</b> jusqu'à <b>South Kensington</b> · ~30-35 min de trajet, sans changement (ligne directe, fait le tour par Westminster et Victoria) · le V&A est juste à la sortie du métro (accès direct par le tunnel piéton souterrain depuis la station).</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">10h00</span><span class="cat">Musée</span></div>
+        <h4 class="i18n">Victoria and Albert Museum</h4>
+        <p class="desc i18n">Design, mode et arts décoratifs · quartier South Kensington · l'un des plus grands musées d'art décoratif au monde · entrée gratuite pour la collection permanente. <b>🕒 Ouvert 10h-17h45.</b> Visite d'environ 2h, sans se presser. <b>Histoire :</b> fondé en 1852 sous le nom de South Kensington Museum, financé par les bénéfices de la Grande Exposition de 1851 ; renommé en 1899 en l'honneur de la reine Victoria et du prince Albert, qui ont posé la première pierre du bâtiment actuel. <b>À ne pas rater :</b> la Great Bed of Ware (lit Renaissance monumental mentionné par Shakespeare), les Cast Courts (moulages grandeur nature de la colonne Trajane et du David de Michel-Ange), la collection de mode et costumes, et les bijoux de la galerie Jewellery.</p>
+      </div>
+      <div class="stop restaurant">
+        <div class="stop-top"><span class="time">12h00</span><span class="cat">Déjeuner</span></div>
+        <h4 class="i18n">V&A Café</h4>
+        <p class="desc i18n">Au V&A · Britannique (self-service, plats chauds, salades, pâtisseries) · ~£15-20/pers · premier café de musée au monde (1868).</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">12h30</span><span class="cat">Option</span></div>
+        <h4 class="i18n">Natural History Museum — juste pour le bâtiment</h4>
+        <p class="desc i18n">À 2 min à pied du V&A · pas la peine de faire toute la visite (dinosaures/baleine bleue déjà vus en profondeur à l'AMNH de New York, en plus petit et redondant ici) · en revanche le <b>Hintze Hall</b> vaut le détour à lui seul : architecture néo-romane spectaculaire, presque une cathédrale · 10-15 min suffisent pour l'admirer et repartir, en passage rapide. <b>🕒 Ouvert tous les jours 10h-17h50 (dernière entrée 17h30).</b> Gratuit. <b>Histoire :</b> issu des collections d'histoire naturelle du British Museum, séparé en musée indépendant en 1881 dans ce bâtiment signé Alfred Waterhouse, financé grâce aux collections léguées par le naturaliste Hans Sloane. <b>À ne pas manquer même en passant vite :</b> "Hope", le squelette de baleine bleue suspendu au plafond du Hintze Hall (a remplacé le célèbre "Dippy" le diplodocus en 2017), et les détails sculptés d'animaux et plantes sur chaque colonne et arche du hall, typiques du style architectural romane victorien.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">12h45</span><span class="cat">Option</span></div>
+        <h4 class="i18n">Science Museum (en option)</h4>
+        <p class="desc i18n">Juste en face du Natural History Museum · gratuit · pour un aperçu très rapide (~15 min) : Flight (histoire de l'aviation), Espace (module Apollo 10), ou Mathematics: The Winton Gallery. <b>🕒 Ouvert tous les jours 10h-18h (dernière entrée 17h15).</b> <b>⚠️ Impact horaire :</b> décale tout le reste de ~15 min et réduit légèrement la marge avant le vol — à faire seulement si l'envie est forte, ou en sautant Leighton House pour compenser. <b>Histoire :</b> né en 1857 des collections scientifiques et industrielles de la Grande Exposition de 1851 (comme le V&A et le Natural History Museum, tous trois issus du même héritage), séparé du V&A en 1909. <b>À ne pas rater si vous passez :</b> le vrai module de commande Apollo 10 (seul objet ayant réellement volé vers la Lune et en revenant, exposé tel quel avec ses traces de rentrée atmosphérique), et la machine à vapeur de Newcomen (1712), l'une des premières machines à vapeur industrielles au monde.</p>
+      </div>
+      <div class="stop walk">
+        <div class="stop-top"><span class="time">13h00</span><span class="cat">Trajet</span></div>
+        <h4 class="i18n">Métro vers Holland Park</h4>
+        <p class="desc i18n">South Kensington → Holland Park ou High Street Kensington · ~15-20 min (bus ou métro avec correspondance).</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">13h20</span><span class="cat">Musée</span></div>
+        <h4 class="i18n">Leighton House</h4>
+        <p class="desc i18n">12 Holland Park Road · ancienne maison-atelier du peintre victorien Frederic, Lord Leighton (1830-1896), la seule maison-atelier d'artiste construite à cet effet encore ouverte au public au Royaume-Uni · <b>l'Arab Hall</b> est le clou de la visite : dôme doré, mosaïques et carreaux de céramique islamique des XVIe-XVIIe siècles, fontaine intérieure. <b>🕒 Ouvert mer-lun 10h-17h30 (dernière entrée 16h30) · Entrée ~£14</b>. <b>Histoire :</b> Leighton a fait construire l'Arab Hall entre 1877 et 1881 pour abriter sa collection de céramiques islamiques rapportées de ses voyages au Moyen-Orient ; sa maison a donné naissance au "Holland Park Circle", une colonie d'artistes qui s'est installée dans le quartier à sa suite. <b>À ne pas rater :</b> l'Arab Hall bien sûr, mais aussi l'atelier de peinture de Leighton à l'étage, éclairé par une grande verrière nord, et les œuvres de Burne-Jones, Millais et Alma-Tadema dans la collection permanente.</p>
+      </div>
+      <div class="stop">
+        <div class="stop-top"><span class="time">14h10</span><span class="cat">Départ</span></div>
+        <h4 class="i18n">Métro vers Victoria puis Gatwick Express</h4>
+        <p class="desc i18n">Holland Park/Kensington → Victoria (~20-25 min, District line) → Gatwick Express (~30 min) · arrivée à l'aéroport vers 15h05-15h20, soit ~2h20-2h35 de marge avant l'embarquement du vol de 17h40 (ou ~2h40-2h55 si le Science Museum optionnel est sauté) · confortable sans bagage en soute et avec l'enregistrement déjà fait en ligne.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="map-section">
+    <h2>🗺️ Carte interactive</h2>
+      <p class="i18n">Logement, restaurant et étapes des 4 jours</p>
+    <div id="map"></div>
+    <div class="legend">
+      <span>🏠 Logement Airbnb</span>
+      <span>🏨 Hôtel (sœur de Ricardo)</span>
+      <span><i class="dot" style="background:#c1272d"></i> Restaurant</span>
+      <span><i class="dot" style="background:#6d6875"></i> Arrivées</span>
+      <span><i class="dot" style="background:#457b9d"></i> 10 Sept</span>
+      <span><i class="dot" style="background:#8e44ad"></i> 11 Sept</span>
+      <span><i class="dot" style="background:#2a9d8f"></i> 12 Sept</span>
+      <span><i class="dot" style="background:#e76f51"></i> 13 Sept</span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="i18n">4 jours à Londres · Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · les ponts</footer>
+
+<script>
+  const buttons = document.querySelectorAll('nav.days button');
+  const panels = document.querySelectorAll('.day-panel');
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      buttons.forEach(b=>b.classList.remove('active'));
+      panels.forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('day-'+btn.dataset.day).classList.add('active');
+    });
+  });
+
+  const map = L.map('map').setView([51.5145, -0.1050], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  function icon(color){
+    return L.divIcon({
+      className:'',
+      html:`<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 3px rgba(0,0,0,0.4);"></div>`,
+      iconSize:[14,14],
+      iconAnchor:[7,7]
+    });
+  }
+
+  function houseIcon(){
+    return L.divIcon({
+      className:'',
+      html:`<div style="background:#b8860b;width:30px;height:30px;border-radius:50% 50% 50% 0;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
+              <span style="transform:rotate(-45deg);font-size:14px;">🏠</span>
+            </div>`,
+      iconSize:[30,30],
+      iconAnchor:[15,30],
+      popupAnchor:[0,-28]
+    });
+  }
+
+  function hotelIcon(){
+    return L.divIcon({
+      className:'',
+      html:`<div style="background:#722f37;width:30px;height:30px;border-radius:50% 50% 50% 0;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
+              <span style="transform:rotate(-45deg);font-size:14px;">🏨</span>
+            </div>`,
+      iconSize:[30,30],
+      iconAnchor:[15,30],
+      popupAnchor:[0,-28]
+    });
+  }
+
+  const NAVY = '#1d3557', RED = '#c1272d', GOLD = '#b8860b';
+  const DAY_COLORS = { 0:'#6d6875', 1:'#457b9d', 2:'#8e44ad', 3:'#2a9d8f', 4:'#e76f51' };
+
+  // Logement — marqueur maison, non relié aux jours
+  const lodging = {lat:51.5203, lng:-0.0716, name:"🏠 Logement Airbnb — Flat 8, 202-204 Brick Lane, E1 6SA"};
+  L.marker([lodging.lat, lodging.lng], {icon: houseIcon()}).addTo(map).bindPopup(lodging.name);
+
+  // Hôtel de la sœur de Ricardo — marqueur hôtel dédié, non relié aux jours
+  const sisterHotel = {lat:51.5090, lng:-0.1968, name:"🏨 Hotel Ruby Zoe d'Annamaria — hôtel de la sœur de Ricardo · Notting Hill Gate"};
+  L.marker([sisterHotel.lat, sisterHotel.lng], {icon: hotelIcon()}).addTo(map).bindPopup(sisterHotel.name);
+
+  // Restaurants — marqueurs indépendants, non reliés au parcours officiel
+  const restaurants = [
+    // Shoreditch / près de l'hôtel
+    {lat:51.5236, lng:-0.0748, name:"🍽️ SMOKESTAK — BBQ au feu de bois · ~£30-40/pers"},
+    {lat:51.5229, lng:-0.0724, name:"🍟 Poppies Fish & Chips — l'incontournable du quartier · ~£15-20/pers"},
+    {lat:51.5265, lng:-0.0817, name:"🍽️ Smoking Goat Shoreditch — thaï grillé · ~£25-30/pers"},
+    {lat:51.5259, lng:-0.0782, name:"🍽️ Dishoom Shoreditch — irano-indien · ~£20-25/pers"},
+    {lat:51.5236, lng:-0.0779, name:"🍽️ Cecconi's Shoreditch — italien chic · ~£45-60/pers"},
+    {lat:51.5231, lng:-0.0715, name:"🥯 Beigel Bake — bagels salt beef, ouvert 24h/24 · ~£5-8/pers"},
+    {lat:51.5230, lng:-0.0715, name:"🥯 Beigel Shop — bagel voisin historique, rival de Beigel Bake · ~£5-8/pers"},
+
+    // Jeudi — autour de Tate Modern / Borough / St Paul's
+    {lat:51.5049, lng:-0.0925, name:"🍽️ Padella — italien, pâtes fraîches · ~£15-20/pers"},
+    {lat:51.5055, lng:-0.0910, name:"🍽️ Arabica Bar and Kitchen — levantin, mezze · ~£20-25/pers"},
+    {lat:51.5023, lng:-0.0798, name:"🍽️ Watch House — café/sandwichs · ~£10-15/pers"},
+    {lat:51.5010, lng:-0.0800, name:"🍽️ Casse-Croûte — bistrot français · ~£30-35/pers"},
+
+    // Vendredi — autour de Covent Garden / Bloomsbury
+    {lat:51.5117, lng:-0.1258, name:"🍽️ Flat Iron Covent Garden — britannique, steak-frites · ~£15-20/pers ✅ (au programme)"},
+    {lat:51.5117, lng:-0.1275, name:"🍽️ Dishoom Covent Garden — irano-indien · ~£20-25/pers"},
+    {lat:51.5088, lng:-0.1300, name:"🍽️ Kanada-Ya — japonais, ramen · ~£15-18/pers"},
+    {lat:51.5090, lng:-0.1265, name:"🍽️ Barrafina Covent Garden — espagnol, tapas · ~£30-35/pers"},
+    {lat:51.5136, lng:-0.1265, name:"🍕 Homeslice — pizza napolitaine à la part · ~£10-12/pers"},
+
+    // Samedi — autour de Camden
+    {lat:51.5430, lng:-0.1460, name:"🍽️ Camden Lock — street food internationale · ~£10-15/pers ✅ (au programme)"},
+    {lat:51.5430, lng:-0.1462, name:"🍽️ The Cinnamon Bazaar — indien contemporain, terrasse canal · ~£25-30/pers"},
+    {lat:51.5390, lng:-0.1426, name:"🍽️ Mildreds Camden — végétarien créatif · ~£18-22/pers"},
+    {lat:51.5423, lng:-0.1467, name:"🍽️ Dirty Bones Camden — américain décontracté, burgers · ~£20-25/pers"},
+    {lat:51.5424, lng:-0.1468, name:"🍽️ Camden Stables Market — étals variés (coréen, mexicain, libanais) · ~£10-15/pers"},
+
+    // Dimanche — autour de South Kensington (V&A)
+    {lat:51.4966, lng:-0.1722, name:"🍽️ V&A Café — britannique, self-service · ~£15-20/pers ✅ (au programme)"},
+    {lat:51.4996, lng:-0.1743, name:"🍽️ Ognisko — polonais élégant · ~£30-40/pers"},
+    {lat:51.4995, lng:-0.1742, name:"🥞 The Kensington Creperie — crêpes sucrées/salées · ~£12-16/pers"},
+    {lat:51.4948, lng:-0.1726, name:"🍽️ Daquise — polonais historique (1947) · ~£25-30/pers"},
+    {lat:51.4941, lng:-0.1730, name:"🦞 Burger & Lobster South Kensington — burgers/homard · ~£25-35/pers"},
+  ];
+  restaurants.forEach(r=>{
+    L.marker([r.lat, r.lng], {icon: icon(RED)}).addTo(map).bindPopup(r.name);
+  });
+
+  // Options musées supplémentaires — marqueurs indépendants, non reliés au parcours officiel
+  const museumOptions = [
+    {lat:51.5170, lng:-0.1531, name:"🖼️ Wallace Collection — hôtel particulier XVIIIe, collection d'art gratuite (repère, non intégré au programme)"},
+  ];
+  museumOptions.forEach(m=>{
+    L.marker([m.lat, m.lng], {icon: icon(NAVY)}).addTo(map).bindPopup(m.name);
+  });
+
+  function boliaIcon(){
+    return L.divIcon({
+      className:'',
+      html:`<div style="background:white;width:20px;height:20px;border-radius:50%;border:1.5px solid #1c2430;box-shadow:0 0 3px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+              <img src="https://logo.clearbit.com/bolia.com" style="width:13px;height:13px;object-fit:contain;" onerror="this.parentElement.innerHTML='🛋️';this.parentElement.style.fontSize='10px';" />
+            </div>`,
+      iconSize:[20,20],
+      iconAnchor:[10,20],
+      popupAnchor:[0,-18]
+    });
+  }
+
+  // Boutiques Bolia — nouvelles ouvertures à Londres (9 et 10 septembre, pendant le séjour)
+  const shops = [
+    {lat:51.5178, lng:-0.1339, name:"🛋️ BOLIA — 95 Tottenham Court Road · Grand Opening 9 septembre"},
+    {lat:51.5171, lng:-0.1567, name:"🛋️ BOLIA — 1 Portman Square, Marylebone · Grand Opening 10 septembre"},
+  ];
+  shops.forEach(s=>{
+    L.marker([s.lat, s.lng], {icon: boliaIcon()}).addTo(map).bindPopup(s.name);
+  });
+
+  // Étapes par jour — reliées par une ligne de parcours, dans l'ordre de visite
+  // (les déjeuners restent uniquement dans le programme écrit, pas dans ce parcours officiel)
+  const dayStops = {
+    0: [
+      {lat:51.5203, lng:-0.0716, name:"14h00 · Arrivée de Chantal"},
+      {lat:51.5194, lng:-0.0762, name:"15h00 · Old Spitalfields Market & Brick Lane"},
+      {lat:51.5203, lng:-0.0716, name:"23h00 · Arrivée de Ricardo et Alexia"},
+    ],
+    1: [
+      {lat:51.5165, lng:-0.1177, name:"10 Sept · 10h00 · Option A — Hunterian Museum"},
+      {lat:51.5163, lng:-0.1179, name:"10 Sept · 10h45 · Option A — Sir John Soane's Museum"},
+      {lat:51.5089, lng:-0.1283, name:"10 Sept · 12h00 · Option A — National Gallery"},
+      {lat:51.5194, lng:-0.1270, name:"10 Sept · 10h00 · Option B — British Museum"},
+      {lat:51.5165, lng:-0.1177, name:"10 Sept · 11h30 · Option B — Hunterian Museum"},
+      {lat:51.5163, lng:-0.1179, name:"10 Sept · 12h15 · Option B — Sir John Soane's Museum"},
+      {lat:51.5117, lng:-0.1240, name:"10 Sept · 13h45 · Covent Garden"},
+      {lat:51.5080, lng:-0.1281, name:"10 Sept · 15h15 · Trafalgar Square"},
+      {lat:51.5079, lng:-0.1401, name:"10 Sept · 16h15 · Fortnum & Mason"},
+      {lat:51.5100, lng:-0.1300, name:"10 Sept · 19h30 · Soirée West End"},
+    ],
+    2: [
+      {lat:51.5076, lng:-0.0994, name:"11 Sept · 10h00 · Tate Modern"},
+      {lat:51.5095, lng:-0.0985, name:"11 Sept · 11h45 · Millennium Bridge"},
+      {lat:51.5138, lng:-0.0984, name:"11 Sept · 12h15 · St Paul's Cathedral"},
+      {lat:51.5175, lng:-0.0982, name:"11 Sept · 13h00 · Postman's Park"},
+      {lat:51.5030, lng:-0.0894, name:"11 Sept · 13h35 · Old Operating Theatre Museum"},
+      {lat:51.5079, lng:-0.0986, name:"11 Sept · 14h30 · Tate Boat — Bankside Pier"},
+      {lat:51.4914, lng:-0.1279, name:"11 Sept · 15h30 · Tate Britain"},
+      {lat:51.5007, lng:-0.1246, name:"11 Sept · 17h00 · Westminster & Big Ben"},
+      {lat:51.5081, lng:-0.0759, name:"11 Sept · 18h15 · Tower of London (extérieur)"},
+      {lat:51.5055, lng:-0.0754, name:"11 Sept · 18h30 · Tower Bridge"},
+      {lat:51.5079, lng:-0.0877, name:"11 Sept · 18h50 · London Bridge"},
+      {lat:51.5124, lng:-0.0834, name:"11 Sept · 19h05 · Option — Leadenhall Market"},
+      {lat:51.5354, lng:-0.0556, name:"11 Sept · 19h43 · Viktor Wynd Museum"},
+    ],
+    3: [
+      {lat:51.5090, lng:-0.1974, name:"12 Sept · 10h00 · Cheeky Scone"},
+      {lat:51.5155, lng:-0.2049, name:"12 Sept · 10h45 · Portobello Road Market"},
+      {lat:51.5495, lng:-0.1776, name:"12 Sept · 12h20 · Freud Museum"},
+      {lat:51.5416, lng:-0.1462, name:"12 Sept · 13h50 · Camden Market"},
+      {lat:51.5406, lng:-0.1428, name:"12 Sept · 14h30 · The Hawley Arms"},
+    ],
+    4: [
+      {lat:51.4966, lng:-0.1722, name:"13 Sept · 10h00 · Victoria and Albert Museum"},
+      {lat:51.4967, lng:-0.1764, name:"13 Sept · 12h30 · Natural History Museum (Hintze Hall)"},
+      {lat:51.4977, lng:-0.1745, name:"13 Sept · 12h45 · Science Museum (en option)"},
+      {lat:51.4972, lng:-0.2079, name:"13 Sept · 13h20 · Leighton House"},
+      {lat:51.5079, lng:-0.1450, name:"13 Sept · 14h10 · Départ vers Gatwick (via Victoria)"},
+    ],
+  };
+
+  Object.keys(dayStops).forEach(day=>{
+    const color = DAY_COLORS[day];
+    const stops = dayStops[day];
+
+    // Marqueurs numérotés pour ce jour
+    stops.forEach((s, i)=>{
+      const numIcon = L.divIcon({
+        className:'',
+        html:`<div style="background:${color};color:white;width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 0 3px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-family:Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;">${i+1}</div>`,
+        iconSize:[20,20],
+        iconAnchor:[10,10]
+      });
+      L.marker([s.lat, s.lng], {icon: numIcon}).addTo(map).bindPopup(s.name);
+    });
+
+    // Ligne reliant les étapes du jour, dans l'ordre de visite
+    const latlngs = stops.map(s=>[s.lat, s.lng]);
+    L.polyline(latlngs, {
+      color: color,
+      weight: 3,
+      opacity: 0.75,
+      dashArray: '6 6'
+    }).addTo(map).bindPopup(`Parcours Jour ${day}`);
+  });
+
+  // ===== i18n =====
+  const I18N_EN = ["4 Days in London", "Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · the bridges of the Thames", "Wednesday Sept 9 · Arrivals", "Thursday Sept 10 · National Gallery/British Museum & West End", "Friday Sept 11 · The 2 Tates + Tower Bridge", "Saturday Sept 12 · Notting Hill & Camden", "Sunday Sept 13 · V&amp;A & return flight", "Accommodation — Brick Lane, Shoreditch", "Staggered arrivals", "Chantal arrives in the afternoon · Ricardo and Alexia arrive in the evening", "Chantal's arrival", "Check in at the flat, Flat 8, 202-204 Brick Lane · drop off luggage.", "Old Spitalfields Market & Brick Lane", "A quiet afternoon for Chantal while waiting for the others · historic covered market, vintage shops, Brick Lane street art · a stone's throw from the flat, ideal first taste of the neighbourhood. On the way: Beigel Bake and Beigel Shop, the two rival historic bagel shops on Brick Lane, open late, perfect for a snack. <b>History:</b> Spitalfields Market has existed since 1638, originally a fruit and vegetable market; Brick Lane takes its name from the brickworks that lined the street in the 16th century. The area has welcomed successive waves of immigration (Huguenots, Eastern European Jews, then Bangladeshis), each leaving its mark — hence the unique mix of synagogues turned mosques, curry houses and street art. <b>Why go:</b> it's London's immigration history, alive and condensed into a few streets.", "Ricardo and Alexia's landing — Gatwick", "Flight BCN → London Gatwick, departing 20:30, arriving 21:50 · then Gatwick Express + tube to Brick Lane (~1h-1h15).", "Ricardo and Alexia's arrival at the flat", "Check-in · reunion with Chantal.", "Welcome snack", "At this hour, a light snack beats going out for dinner · Beigel Bake (open 24/7) or a light meal at the flat · a proper group dinner is planned for tomorrow night instead.", "Historic centre & West End evening", "British Museum, Covent Garden, Trafalgar Square and an evening show", "Tube to Holborn", "From the hotel (Brick Lane): walk ~10 min to <b>Liverpool Street</b>, then take the <b>Central line</b> westbound to <b>Holborn</b> (4 stops: Bank, St Paul's, Chancery Lane, Holborn) · ~10 min journey, no change · both the Hunterian Museum and the British Museum are within a 10-minute walk of the station exit.", "Hunterian Museum", "38-43 Lincoln's Inn Fields, Holborn · <b>if Option A was chosen, do this first</b> (the National Gallery is too far from the British Museum to do afterwards, but very close to Covent Garden) · historic medical collection of surgeon John Hunter (18th c.): anatomical specimens, skeletons, period surgical instruments · fascinating for those curious about medical history, but clinical and sometimes graphic. <b>🕒 Open Tue-Sat 10am-5pm · Free</b> (£3 donation suggested) · free timed ticket recommended online. <b>History:</b> John Hunter (1728-1793), pioneer of modern surgery and comparative anatomy, bequeathed his personal collection to the Royal College of Surgeons; the museum reopened in 2023 after 6 years of renovation. <b>Don't miss:</b> the surgical instruments of Joseph Lister (pioneer of antisepsis), the 17th-century anatomical tables made for diarist John Evelyn, and the pathology specimens that trained generations of surgeons.", "Sir John Soane's Museum", "13 Lincoln's Inn Fields · literally on the same square as the Hunterian Museum, just across the garden · house of neoclassical architect Sir John Soane, preserved exactly as he left it when he died in 1837 · a labyrinthine, spectacular interior: mirrors and trick perspectives multiplying the space, antiquities piled floor to ceiling, an Egyptian alabaster sarcophagus in the basement. <b>🕒 Open Wed-Sun 10am-5pm (last entry 4:30pm) · Free</b> — no booking needed, but queues possible (limited capacity). <b>History:</b> Soane, architect of the Bank of England, gathered here 20,000 architectural drawings, antiquities, and works by Turner, Canaletto and Piranesi; he was so delighted to receive the sarcophagus of Seti I that he threw a three-day party for the occasion. <b>Don't miss:</b> the complete series of Hogarth's \"A Rake's Progress\" (behind panels you open yourself), the sarcophagus of Seti I, and the Breakfast Room, a masterpiece of light and mirrors.", "National Gallery", "Trafalgar Square · free entry · over 2,600 Western paintings, from 1250 to 1900 · <b>done right after the Hunterian Museum and Soane's Museum, on the natural way to Covent Garden</b>. <b>🕒 Open 10am-6pm on Thursdays</b> (open until 9pm on Fridays only). <b>History:</b> founded in 1824, built from the start as a public collection rather than inherited from a private royal collection. <b>Don't miss:</b> Van Gogh's Sunflowers (Room 43, often quieter later in the day), Monet's Water-Lily Pond, Holbein's The Ambassadors, Van Eyck's Arnolfini Portrait, and the Impressionist/Post-Impressionist rooms (Renoir, Cézanne, Seurat). Visit tightened to ~1h. Enter via the Sainsbury Wing to follow the collection chronologically.", "British Museum", "World collections · the Rosetta Stone, the Parthenon Marbles · free entry. <b>🕒 Open 10am-5pm</b> (no late hours on Thursdays, unlike Fridays) — plan to leave before 5pm. Visit tightened to ~1h30. <b>History:</b> founded in 1753 from the private collection of physician Hans Sloane, it's the world's first national public museum, housed in its current neoclassical building since 1852. <b>Don't miss:</b> the Rosetta Stone (Room 4, key to deciphering hieroglyphics), the Parthenon/Elgin Marbles (Room 18), the Egyptian mummies and the sarcophagus of Nesperennub (Rooms 62-63), the Sutton Hoo treasure (Room 41, Anglo-Saxon helmet), and the glass-roofed Great Court, the largest covered square in Europe.", "Hunterian Museum", "38-43 Lincoln's Inn Fields, Holborn · 10 min walk from the British Museum · <b>if Option B was chosen, do this after</b> · historic medical collection of surgeon John Hunter (18th c.): anatomical specimens, skeletons, period surgical instruments · fascinating for those curious about medical history, but clinical and sometimes graphic. <b>🕒 Open Tue-Sat 10am-5pm · Free</b> (£3 donation suggested) · free timed ticket recommended online. <b>History:</b> John Hunter (1728-1793), pioneer of modern surgery and comparative anatomy, bequeathed his personal collection to the Royal College of Surgeons; the museum reopened in 2023 after 6 years of renovation. <b>Don't miss:</b> the surgical instruments of Joseph Lister (pioneer of antisepsis), the 17th-century anatomical tables made for diarist John Evelyn, and the pathology specimens that trained generations of surgeons. Visit tightened to ~45 min.", "Sir John Soane's Museum", "13 Lincoln's Inn Fields · literally on the same square as the Hunterian Museum, just across the garden · house of neoclassical architect Sir John Soane, preserved exactly as he left it when he died in 1837 · a labyrinthine, spectacular interior: mirrors and trick perspectives multiplying the space, antiquities piled floor to ceiling, an Egyptian alabaster sarcophagus in the basement. <b>🕒 Open Wed-Sun 10am-5pm (last entry 4:30pm) · Free</b> — no booking needed, but queues possible (limited capacity). <b>History:</b> Soane, architect of the Bank of England, gathered here 20,000 architectural drawings, antiquities, and works by Turner, Canaletto and Piranesi; he was so delighted to receive the sarcophagus of Seti I that he threw a three-day party for the occasion. <b>Don't miss:</b> the complete series of Hogarth's \"A Rake's Progress\" (behind panels you open yourself), the sarcophagus of Seti I, and the Breakfast Room, a masterpiece of light and mirrors.", "Covent Garden", "Covered market hall, street performers, shops and cafés. <b>History:</b> once the garden of Westminster Abbey's monks (\"Convent Garden\"), turned into a fruit and vegetable market from 1654 and then a Victorian covered market in 1830; the Beatles gave an impromptu concert nearby on the Apple Corps balcony in 1969. <b>Why go:</b> lively atmosphere and officially auditioned street performers (a real audition is required to perform here), preserved Victorian architecture, historic gateway to the West End theatre district right next door.", "Trafalgar Square", "Nelson's Column, fountains · right in front of the National Gallery (already visited this morning if Option A was chosen). <b>History:</b> laid out in 1844 to commemorate the British naval victory at Trafalgar (1805) against the combined French-Spanish fleet; the column (52m) is topped by a statue of Admiral Nelson, who died in the battle. The four bronze lions at its base were cast from captured French cannons. <b>Why go:</b> the symbolic heart of London, site of historic gatherings (protests, New Year's celebrations), and a great vantage point onto the National Gallery just behind.", "Fortnum & Mason", "Iconic Piccadilly department store since 1707 · fine grocery, teas, elegant façade and window displays · 5 min walk from Piccadilly Circus, where the West End is. <b>🕒 Open 10am-8pm (Thursdays included).</b> <b>History:</b> founded by William Fortnum (a royal footman) and Hugh Mason in 1707; Fortnum's is said to have invented the Scotch egg as travel food for stagecoaches. Official supplier to the royal family for generations. <b>Why go:</b> the mechanical clock on the façade comes alive every hour with automaton figures of Fortnum and Mason, and the ground-floor grocery/tea hall is worth a look even without buying anything. <b>🛍️ To buy:</b> jasmine tea for Chantal, at the ground-floor tea counter.", "West End evening show", "Musical or show in the theatre district (Piccadilly / Leicester Square) — London's answer to Broadway.", "The two Tates — by boat on the Thames", "Tate Modern, St Paul's, Tate Boat to Tate Britain, then Westminster on foot", "Tube to Tate Modern", "From the hotel (Brick Lane): walk ~10 min to <b>Liverpool Street</b>, then take the <b>Central line</b> westbound to <b>St Paul's</b> (2 stops: Bank, St Paul's) · ~8-10 min journey, no change · then ~10-12 min walk across Millennium Bridge to Tate Modern (lovely view of the cathedral along the way).", "Tate Modern", "Former Bankside power station · modern and contemporary art · spectacular Turbine Hall · free entry to the permanent collection. <b>🕒 Open 10am-9pm on Fridays</b> (extended hours vs Mon-Thu, no time pressure today). <b>History:</b> a decommissioned power station (Bankside Power Station, built in the 1950s-60s by Giles Gilbert Scott, also the architect of the red telephone box), converted into a museum in 2000 — one of the most successful industrial conversions in the world. <b>Don't miss:</b> the Rothko room, Monet's Water Lilies, the often-spectacular installations in the huge Turbine Hall (varies by season), and Picasso/Matisse in the permanent collections.", "Millennium Bridge", "Suspended pedestrian footbridge linking Tate Modern to St Paul's · iconic view of the cathedral · right next to Tate Modern. <b>History:</b> opened in 2000 for the new millennium, it had to close just 2 days after opening due to an unexpected side-to-side sway underfoot (the \"Millennium Wobble\") — only reopened in 2002 after modifications. <b>Why go:</b> the first pedestrian bridge over the Thames in over a century, with one of London's best sightlines, framing St Paul's perfectly in alignment.", "St Paul's Cathedral", "Christopher Wren's baroque dome · exterior view or climb up to the Whispering Gallery. <b>🕒 Open Mon-Sat 8:30am-4:30pm (last entry 4pm)</b> — closed to sightseeing on Sundays. <b>History:</b> rebuilt by Christopher Wren after the medieval cathedral was destroyed in the Great Fire of London (1666), completed in 1710. Miraculously survived the Blitz of 1940 — the photo of the intact dome amid bombing smoke became an icon of British resilience. Site of Churchill's funeral (1965) and Charles and Diana's wedding (1981). <b>Don't miss:</b> the Whispering Gallery (whisper against the wall and be heard 30m away), the crypt (tombs of Nelson and Wellington), and the view from the Golden Gallery at the very top of the dome (528 steps).", "Postman's Park", "King Edward Street · 5 min walk from St Paul's · small Victorian garden home to the Memorial to Heroic Self-Sacrifice: a wall of ceramic plaques each telling the story of an ordinary Londoner who died saving someone else's life · moving and little-known. <b>🕒 Free access, open every day (public garden).</b> Free.", "Old Operating Theatre Museum", "9a St Thomas Street, right next to Borough Market · ~15 min walk from Postman's Park · Europe's oldest surviving surgical operating theatre (1822), rediscovered by chance in 1956 in a church attic · period surgical instruments, from before anaesthesia and antiseptics · accessed via a narrow spiral staircase. <b>🕒 Open Thu-Sun 10:30am-5pm (last entry 4:15pm)</b> — open on Fridays, the day of the visit. Paid entry (a few pounds), ~40 min.", "Tate Boat — Bankside Pier → Millbank Pier", "Direct river shuttle between the two Tates · ~18 min on the Thames · views of Big Ben, the London Eye and Parliament · combined ticket available with Tate Britain entry.", "Tate Britain", "British art from the 16th century to today · Turner, Hockney · on the Thames at Millbank. <b>🕒 Open 10am-6pm (last entry 5:30pm).</b> Visit tightened to ~1h30. <b>History:</b> opened in 1897 thanks to funding from sugar magnate Henry Tate (who also gave his name to Tate & Lyle sugar), on the site of a former prison (Millbank Penitentiary). <b>Don't miss:</b> the Turner galleries (the world's largest collection of the artist's work, bequeathed by Turner himself), the Pre-Raphaelites (Millais, Rossetti), Millais's Ophelia, and works by Francis Bacon and David Hockney in the modern British art galleries.", "Westminster & Big Ben", "15 min walk from Tate Britain along the Thames, via Victoria Tower Gardens · Houses of Parliament, Big Ben, Westminster Abbey. <b>History:</b> the current Palace of Westminster dates from 1840-1870 (rebuilt after a fire), on a site used as a royal residence and seat of power since the 11th century. \"Big Ben\" is actually the name of the bell (13.7 tonnes), not the tower itself (officially the Elizabeth Tower since 2012). Westminster Abbey has hosted every royal coronation since 1066. <b>Why go:</b> the institutional heart of the UK, spectacular Gothic Revival architecture, even more striking at dusk when the towers light up.", "Tube to Tower Hill", "District/Circle line, direct from Westminster · ~20-25 min · on the way back to the hotel.", "Tower of London (exterior)", "A simple walk past the fortress, no paid visit · views of the moat and towers from outside · pair with Tower Bridge right next door. <b>History:</b> founded by William the Conqueror in 1078 (the central White Tower), it has served in turn as royal palace, prison (Anne Boleyn was executed here in 1536), armoury, and today houses the Crown Jewels. The ravens that live there are protected by legend: if the ravens ever leave the Tower, the Crown will fall. <b>Why see it even from outside:</b> almost 1000 years of history concentrated on one site, an instantly recognisable silhouette on the Thames.", "Tower Bridge", "Walk across the most photographed drawbridge in London · lovely evening light. <b>History:</b> built between 1886 and 1894 to ease traffic while preserving access for large ships to the Port of London — hence its bascule mechanism, still functional today (the two roadway sections still lift to let large boats through, several times a week). Often mistakenly confused with \"London Bridge\" by tourists. <b>Why go:</b> one of the most recognisable bridges in the world, Victorian Gothic architecture, a glass-floored high-level walkway (paid) with a plunging view over the Thames.", "London Bridge", "15 min walk from Tower Bridge · view of The Shard · then back on foot or by tube to Brick Lane (~15-20 min). <b>History:</b> the current bridge dates from 1973 (the previous 19th-century one was sold and rebuilt stone by stone in Arizona, USA, in 1968 — a persistent urban legend claims the American buyer thought he was buying Tower Bridge by mistake). A bridge has stood on this spot since Roman times. <b>Why go:</b> less spectacular than Tower Bridge but a strategic spot for the view of The Shard and the City lighting up in the evening.", "Leadenhall Market", "~10-12 min walk from London Bridge, in the City · covered Victorian market hall, ornate green and maroon iron-and-glass roof, original cobblestone paving. <b>Why go:</b> this is where the passage to Diagon Alley was filmed in the Harry Potter films (the Leaky Cauldron entrance was shot at the entrance to Bull's Head Passage) · one of the finest examples of Victorian market architecture still in use in London, with Roman remains beneath the foundations (the former forum of Londinium). <b>⚠️ Timing impact:</b> an optional ~20-25 min detour before heading to the Viktor Wynd Museum (adds to the journey to Hackney) · only worth it if you're keen, otherwise head straight to Hackney. <b>🕒 Free access, busiest on weekdays during office hours</b> (quieter in the evening, but the architecture is still visible).", "Viktor Wynd Museum of Curiosities", "11 Mare Street, Hackney · ~30-35 min travel from London Bridge (bus or tube with a change) · eccentric cabinet of curiosities: taxidermy, shrunken heads, surrealist and occult art, plus a cocktail bar upstairs · quirky Victorian Wunderkammer vibe, for the simply curious. <b>🕒 Open Tue-Fri 3pm-11pm · Sat 12pm-11pm · Sun 12pm-10pm · Entry £12</b> (timed ticket required) · possibility of finishing the evening at the bar on site. <b>🎟️ Friday booking slots:</b> 6:00pm, 6:45pm, 7:30pm or 8:15pm.", "Dinner near the hotel", "Back in Shoreditch after visiting the museum · Smokestak, Dishoom or Poppies Fish & Chips.", "Notting Hill, Freud Museum & Camden", "Portobello Road, Sigmund Freud's house, an alternative market and a legendary pub", "Tube to Notting Hill", "From the hotel (Brick Lane): walk ~10 min to <b>Liverpool Street</b>, then take the <b>Central line</b> westbound to <b>Notting Hill Gate</b> (10 stops: Bank, St Paul's, Chancery Lane, Holborn, Tottenham Court Road, Oxford Circus, Bond Street, Marble Arch, Lancaster Gate, Queensway, Notting Hill Gate) · ~25-30 min journey, no change.", "Cheeky Scone", "43 Pembridge Road, W11 3HG · 2-3 min walk from Notting Hill Gate · a shop entirely devoted to scones, in every variation (plain, lemon-blueberry, chocolate, cheese...) with jam and clotted cream. <b>🕒 Open Saturdays 10am-5:30pm.</b> Frequent queues on Saturday mornings, best to arrive early.", "Portobello Road Market", "London's best-known antiques/flea market, at its busiest and liveliest on Saturdays (the ideal day) · pastel-coloured houses typical of the neighbourhood, made famous by the film of the same name.", "Tube to Hampstead", "Central line then change (Jubilee line or bus) towards Finchley Road/Swiss Cottage · ~30-35 min.", "Freud Museum", "20 Maresfield Gardens, Hampstead · Sigmund Freud's former home, his study and famous couch preserved · small, intimate museum. <b>🕒 Open 10:30am-5pm on Saturdays.</b>", "Tube to Camden", "No direct tube line from the Freud Museum · simplest option: <b>bus 268</b> from the Fitzjohn's Avenue stop (2 min walk from the museum) to <b>Camden Town</b>, ~15-20 min · tube alternative: walk ~10 min to <b>Finchley Road</b> (Jubilee/Metropolitan line), then Jubilee line to Baker Street, then Northern line to <b>Camden Town</b> (1 change) · ~25 min total.", "Camden Market", "Stalls, alternative fashion, unique atmosphere · take your time browsing. <b>🕒 Open 7 days a week, 10am-6pm.</b>", "The Hawley Arms", "2 Castlehaven Road · legendary pub frequented by Amy Winehouse in the 2000s · a quick look or a drink for music fans.", "Camden Lock", "On the Regent's Canal · international street food · a late lunch/snack to close out the day.", "V&amp;A & 5:40pm return flight", "Design & decorative arts, a stop at the Natural History Museum, optional Science Museum · Tower Bridge, Tower of London and London Bridge already seen on Thursday", "Return flight — Ricardo, Alexia & Chantal", "Tube to South Kensington", "From the hotel (Brick Lane): walk ~10 min to <b>Liverpool Street</b>, then take the <b>Circle line</b> to <b>South Kensington</b> · ~30-35 min journey, no change (direct line, loops via Westminster and Victoria) · the V&A is right at the station exit (direct access via the underground pedestrian tunnel from the station).", "Victoria and Albert Museum", "Design, fashion and decorative arts · South Kensington · one of the world's largest museums of decorative art · free entry to the permanent collection. <b>🕒 Open 10am-5:45pm.</b> Visit of about 2h, at a relaxed pace. <b>History:</b> founded in 1852 as the South Kensington Museum, funded by the profits of the Great Exhibition of 1851; renamed in 1899 in honour of Queen Victoria and Prince Albert, who laid the foundation stone of the current building. <b>Don't miss:</b> the Great Bed of Ware (a monumental Renaissance bed mentioned by Shakespeare), the Cast Courts (life-size casts of Trajan's Column and Michelangelo's David), the fashion and costume collection, and the jewellery gallery.", "Natural History Museum — just for the building", "2 min walk from the V&A · no need for the full visit (dinosaurs/blue whale already thoroughly seen at the AMNH in New York, smaller and a bit redundant here) · but the <b>Hintze Hall</b> is worth the detour on its own: spectacular Romanesque architecture, almost a cathedral · 10-15 min is enough to admire it and move on, as a quick stop. <b>🕒 Open every day 10am-5:50pm (last entry 5:30pm).</b> Free. <b>History:</b> grew out of the British Museum's natural history collections, split off into an independent museum in 1881 in this building designed by Alfred Waterhouse, funded thanks to collections bequeathed by naturalist Hans Sloane. <b>Don't miss even on a quick visit:</b> \"Hope\", the blue whale skeleton hanging from the Hintze Hall ceiling (replaced the famous \"Dippy\" the diplodocus in 2017), and the sculpted animal and plant details on every column and arch of the hall, typical of Victorian Romanesque style.", "Science Museum (optional)", "Right opposite the Natural History Museum · free · for a very quick look (~15 min): Flight (aviation history), Space (Apollo 10 module), or Mathematics: The Winton Gallery. <b>🕒 Open every day 10am-6pm (last entry 5:15pm).</b> <b>⚠️ Timing impact:</b> pushes everything else back by ~15 min and slightly reduces the buffer before the flight — only worth it if you're keen, or skip Leighton House to compensate. <b>History:</b> born in 1857 from the scientific and industrial collections of the Great Exhibition of 1851 (like the V&A and the Natural History Museum, all three sharing the same heritage), split from the V&A in 1909. <b>Don't miss if you go:</b> the actual Apollo 10 command module (the only object that really flew to the Moon and back on display as-is, with its re-entry scorch marks), and Newcomen's steam engine (1712), one of the first industrial steam engines in the world.", "V&A Café", "At the V&A · British (self-service, hot dishes, salads, pastries) · ~£15-20/person · the world's first museum café (1868).", "Tube to Holland Park", "South Kensington → Holland Park or High Street Kensington · ~15-20 min (bus or tube with a change).", "Leighton House", "12 Holland Park Road · former studio-house of Victorian painter Frederic, Lord Leighton (1830-1896), the only purpose-built artist's studio-house of its kind still open to the public in the UK · <b>the Arab Hall</b> is the highlight: golden dome, 16th-17th century Islamic ceramic tiles, indoor fountain. <b>🕒 Open Wed-Mon 10am-5:30pm (last entry 4:30pm) · Entry ~£14</b>. <b>History:</b> Leighton had the Arab Hall built between 1877 and 1881 to house his collection of Islamic tiles brought back from his travels in the Middle East; his house gave rise to the \"Holland Park Circle\", a colony of artists who settled in the area after him. <b>Don't miss:</b> the Arab Hall of course, but also Leighton's painting studio upstairs, lit by a great north window, and works by Burne-Jones, Millais and Alma-Tadema in the permanent collection.", "Tube to Victoria then Gatwick Express", "Holland Park/Kensington → Victoria (~20-25 min, District line) → Gatwick Express (~30 min) · arrive at the airport around 3:05-3:20pm, about 2h20-2h35 of buffer before the 5:40pm boarding (or ~2h40-2h55 if the optional Science Museum is skipped) · comfortable with no checked luggage and online check-in already done.", "Accommodation, restaurants and each day's route", "4 Days in London · Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · the bridges"];
+  const I18N_ES = ["4 Días en Londres", "Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · los puentes del Támesis", "Miércoles 9 sept · Llegadas", "Jueves 10 sept · National Gallery/British Museum y West End", "Viernes 11 sept · Las 2 Tate + Tower Bridge", "Sábado 12 sept · Notting Hill y Camden", "Domingo 13 sept · V&amp;A y vuelo de vuelta", "Alojamiento — Brick Lane, Shoreditch", "Llegadas escalonadas", "Chantal llega por la tarde · Ricardo y Alexia llegan por la noche", "Llegada de Chantal", "Check-in en el apartamento, Flat 8, 202-204 Brick Lane · dejar el equipaje.", "Old Spitalfields Market y Brick Lane", "Tarde tranquila para Chantal mientras espera a los demás · mercado cubierto histórico, tiendas vintage, arte urbano de Brick Lane · a un paso del alojamiento, ideal primer contacto con el barrio. De camino: Beigel Bake y Beigel Shop, las dos tiendas de bagels históricas y rivales de Brick Lane, abiertas hasta tarde, perfectas para un tentempié. <b>Historia:</b> Spitalfields Market existe desde 1638, originalmente mercado de frutas y verduras; Brick Lane debe su nombre a las ladrilleras que bordeaban la calle en el siglo XVI. El barrio ha acogido sucesivas oleadas de inmigración (hugonotes, judíos de Europa del Este, luego bangladesíes), cada una dejando su huella — de ahí la mezcla única de sinagogas convertidas en mezquitas, restaurantes de curry y arte urbano. <b>Por qué ir:</b> es la historia viva de la inmigración londinense, condensada en unas pocas calles.", "Aterrizaje de Ricardo y Alexia — Gatwick", "Vuelo BCN → Londres Gatwick, salida 20:30, llegada 21:50 · después Gatwick Express + metro hasta Brick Lane (~1h-1h15).", "Llegada de Ricardo y Alexia al alojamiento", "Check-in · reencuentro con Chantal.", "Tentempié de bienvenida", "A esta hora, mejor un tentempié ligero que salir a cenar · Beigel Bake (abierto 24h) o comida ligera en el apartamento · la cena de grupo se deja para la noche siguiente.", "Centro histórico y noche en el West End", "British Museum, Covent Garden, Trafalgar Square y un espectáculo por la noche", "Tube to Holborn", "Desde el hotel (Brick Lane): caminar ~10 min hasta <b>Liverpool Street</b>, luego coger la <b>línea Central</b> dirección oeste hasta <b>Holborn</b> (4 paradas: Bank, St Paul's, Chancery Lane, Holborn) · ~10 min de trayecto, sin transbordo · tanto el Hunterian Museum como el British Museum están a menos de 10 min a pie de la salida del metro.", "Hunterian Museum", "38-43 Lincoln's Inn Fields, Holborn · <b>si se eligió la Opción A, hacerlo primero</b> (la National Gallery está demasiado lejos del British Museum para hacerla después, pero muy cerca de Covent Garden) · colección médica histórica del cirujano John Hunter (s. XVIII): especímenes anatómicos, esqueletos, instrumentos quirúrgicos de época · fascinante para los curiosos de la historia de la medicina, aunque clínico y a veces crudo. <b>🕒 Abierto mar-sáb 10h-17h · Gratis</b> (donativo de £3 sugerido) · se recomienda entrada gratuita con horario reservado online. <b>Historia:</b> John Hunter (1728-1793), pionero de la cirugía moderna y la anatomía comparada, legó su colección personal al Royal College of Surgeons; el museo reabrió en 2023 tras 6 años de renovación. <b>Imprescindible:</b> los instrumentos quirúrgicos de Joseph Lister (pionero de la antisepsia), las mesas anatómicas del siglo XVII hechas para el diarista John Evelyn, y los especímenes patológicos que formaron a generaciones de cirujanos.", "Sir John Soane's Museum", "13 Lincoln's Inn Fields · literalmente en la misma plaza que el Hunterian Museum, cruzando el jardín · casa del arquitecto neoclásico Sir John Soane, conservada tal como la dejó al morir en 1837 · un interior laberíntico y espectacular: espejos y perspectivas trucadas que multiplican el espacio, antigüedades apiladas del suelo al techo, un sarcófago egipcio de alabastro en el sótano. <b>🕒 Abierto mié-dom 10h-17h (última entrada 16:30h) · Gratis</b> — no hace falta reservar, pero puede haber cola (capacidad limitada). <b>Historia:</b> Soane, arquitecto del Banco de Inglaterra, reunió aquí 20.000 dibujos arquitectónicos, antigüedades y obras de Turner, Canaletto y Piranesi; se alegró tanto de recibir el sarcófago de Seti I que organizó una fiesta de tres días para la ocasión. <b>Imprescindible:</b> la serie completa de \"La carrera de un libertino\" de Hogarth (tras paneles que se abren uno mismo), el sarcófago de Seti I, y la Breakfast Room, una obra maestra de luz y espejos.", "National Gallery", "Trafalgar Square · entrada gratuita · más de 2600 cuadros de arte occidental, de 1250 a 1900 · <b>justo después del Hunterian Museum y Soane's Museum, de camino natural hacia Covent Garden</b>. <b>🕒 Abierto 10h-18h los jueves</b> (hasta las 21h solo los viernes). <b>Historia:</b> fundada en 1824, concebida desde el principio como colección pública en lugar de heredada de una colección real privada. <b>Imprescindible:</b> los Girasoles de Van Gogh (sala 43, a menudo más tranquila al final del día), el Estanque de nenúfares de Monet, Los Embajadores de Holbein, el Retrato de los Arnolfini de Van Eyck, y las salas impresionistas/postimpresionistas (Renoir, Cézanne, Seurat). Visita ajustada a ~1h. Entrar por la Sainsbury Wing para seguir la colección cronológicamente.", "British Museum", "Colecciones de todo el mundo · la piedra de Rosetta, los mármoles del Partenón · entrada gratuita. <b>🕒 Abierto 10h-17h</b> (sin horario ampliado los jueves, a diferencia de los viernes) — hay que salir antes de las 17h. Visita ajustada a ~1h30. <b>Historia:</b> fundado en 1753 a partir de la colección privada del médico Hans Sloane, es el primer museo público nacional del mundo, instalado en su edificio neoclásico actual desde 1852. <b>Imprescindible:</b> la piedra de Rosetta (sala 4, clave para descifrar los jeroglíficos), los mármoles del Partenón/de Elgin (sala 18), las momias egipcias y el sarcófago de Nesperennub (salas 62-63), el tesoro de Sutton Hoo (sala 41, casco anglosajón), y el Great Court cubierto de cristal, la plaza cubierta más grande de Europa.", "Hunterian Museum", "38-43 Lincoln's Inn Fields, Holborn · a 10 min a pie del British Museum · <b>si se eligió la Opción B, hacerlo después</b> · colección médica histórica del cirujano John Hunter (s. XVIII): especímenes anatómicos, esqueletos, instrumentos quirúrgicos de época · fascinante para los curiosos de la historia de la medicina, aunque clínico y a veces crudo. <b>🕒 Abierto mar-sáb 10h-17h · Gratis</b> (donativo de £3 sugerido) · se recomienda entrada gratuita con horario reservado online. <b>Historia:</b> John Hunter (1728-1793), pionero de la cirugía moderna y la anatomía comparada, legó su colección personal al Royal College of Surgeons; el museo reabrió en 2023 tras 6 años de renovación. <b>Imprescindible:</b> los instrumentos quirúrgicos de Joseph Lister (pionero de la antisepsia), las mesas anatómicas del siglo XVII hechas para el diarista John Evelyn, y los especímenes patológicos que formaron a generaciones de cirujanos. Visita ajustada a ~45 min.", "Sir John Soane's Museum", "13 Lincoln's Inn Fields · literalmente en la misma plaza que el Hunterian Museum, cruzando el jardín · casa del arquitecto neoclásico Sir John Soane, conservada tal como la dejó al morir en 1837 · un interior laberíntico y espectacular: espejos y perspectivas trucadas que multiplican el espacio, antigüedades apiladas del suelo al techo, un sarcófago egipcio de alabastro en el sótano. <b>🕒 Abierto mié-dom 10h-17h (última entrada 16:30h) · Gratis</b> — no hace falta reservar, pero puede haber cola (capacidad limitada). <b>Historia:</b> Soane, arquitecto del Banco de Inglaterra, reunió aquí 20.000 dibujos arquitectónicos, antigüedades y obras de Turner, Canaletto y Piranesi; se alegró tanto de recibir el sarcófago de Seti I que organizó una fiesta de tres días para la ocasión. <b>Imprescindible:</b> la serie completa de \"La carrera de un libertino\" de Hogarth (tras paneles que se abren uno mismo), el sarcófago de Seti I, y la Breakfast Room, una obra maestra de luz y espejos.", "Covent Garden", "Mercado cubierto, artistas callejeros, tiendas y cafés. <b>Historia:</b> antiguo jardín de los monjes de la Abadía de Westminster (\"Convent Garden\"), convertido en mercado de frutas y verduras desde 1654 y luego en mercado cubierto victoriano en 1830; los Beatles dieron un concierto improvisado cerca, en el balcón de Apple Corps, en 1969. <b>Por qué ir:</b> ambiente animado y artistas callejeros con audición oficial obligatoria para actuar aquí, arquitectura victoriana preservada, punto de partida histórico del West End teatral justo al lado.", "Trafalgar Square", "Columna de Nelson, fuentes · justo delante de la National Gallery (ya visitada esta mañana si se eligió la Opción A). <b>Historia:</b> creada en 1844 para conmemorar la victoria naval británica en Trafalgar (1805) contra la flota franco-española; la columna (52m) está coronada por una estatua del almirante Nelson, muerto en la batalla. Los cuatro leones de bronce de la base se fundieron con cañones franceses capturados. <b>Por qué ir:</b> corazón simbólico de Londres, lugar de concentraciones históricas (manifestaciones, celebraciones de Fin de Año), y buen mirador hacia la National Gallery justo detrás.", "Fortnum & Mason", "Emblemáticos grandes almacenes de Piccadilly desde 1707 · alimentación selecta, tés, fachada y escaparates elegantes · a 5 min a pie de Piccadilly Circus, donde está el West End. <b>🕒 Abierto 10h-20h (jueves incluido).</b> <b>Historia:</b> fundado por William Fortnum (lacayo real) y Hugh Mason en 1707; se dice que Fortnum's inventó el Scotch egg como tentempié de viaje para las diligencias. Proveedor oficial de la familia real desde generaciones. <b>Por qué ir:</b> el reloj mecánico de la fachada se anima cada hora con autómatas de Fortnum y Mason, y la planta baja de alimentación/té merece un vistazo aunque no se compre nada. <b>🛍️ Para comprar:</b> té de jazmín para Chantal, en el mostrador de té de la planta baja.", "Noche de espectáculo en el West End", "Musical o espectáculo en el barrio de los teatros (Piccadilly / Leicester Square) — el equivalente londinense de Broadway.", "Las dos Tate — en barco por el Támesis", "Tate Modern, St Paul's, Tate Boat hacia Tate Britain, y luego Westminster a pie", "Tube to Tate Modern", "Desde el hotel (Brick Lane): caminar ~10 min hasta <b>Liverpool Street</b>, luego coger la <b>línea Central</b> dirección oeste hasta <b>St Paul's</b> (2 paradas: Bank, St Paul's) · ~8-10 min de trayecto, sin transbordo · después ~10-12 min a pie cruzando el Millennium Bridge hasta la Tate Modern (bonita vista de la catedral por el camino).", "Tate Modern", "Antigua central eléctrica de Bankside · arte moderno y contemporáneo · espectacular Turbine Hall · entrada gratuita a la colección permanente. <b>🕒 Abierto 10h-21h los viernes</b> (horario ampliado respecto a lun-jue, sin prisas hoy). <b>Historia:</b> antigua central eléctrica en desuso (Bankside Power Station, construida en los años 1950-60 por Giles Gilbert Scott, también arquitecto de las cabinas telefónicas rojas), reconvertida en museo en 2000 — una de las reconversiones industriales más exitosas del mundo. <b>Imprescindible:</b> la sala dedicada a Rothko, los Nenúfares de Monet, las instalaciones a menudo espectaculares en la enorme Turbine Hall (varía según la temporada), y Picasso/Matisse en las colecciones permanentes.", "Millennium Bridge", "Pasarela peatonal suspendida que une la Tate Modern con St Paul's · vista emblemática de la catedral · justo al lado de la Tate Modern. <b>Historia:</b> inaugurado en 2000 para el nuevo milenio, tuvo que cerrar solo 2 días después de su apertura por un balanceo lateral inesperado bajo el paso de los peatones (el \"Millennium Wobble\") — reabrió solo en 2002 tras modificaciones. <b>Por qué ir:</b> el primer puente peatonal sobre el Támesis en más de un siglo, con una de las mejores perspectivas de Londres, encuadrando St Paul's perfectamente en su eje.", "Catedral de St Paul's", "Cúpula barroca de Christopher Wren · vista exterior o subida hasta la Whispering Gallery. <b>🕒 Abierto lun-sáb 8:30h-16:30h (última entrada 16h)</b> — cerrada a visitas turísticas los domingos. <b>Historia:</b> reconstruida por Christopher Wren tras la destrucción del edificio medieval en el Gran Incendio de Londres (1666), terminada en 1710. Sobrevivió milagrosamente al Blitz de 1940 — la foto de la cúpula intacta entre el humo de los bombardeos se convirtió en un icono de la resistencia británica. Lugar del funeral de Churchill (1965) y de la boda de Carlos y Diana (1981). <b>Imprescindible:</b> la Whispering Gallery (susurrar contra el muro y ser oído a 30m de distancia), la cripta (tumbas de Nelson y Wellington), y la vista desde la Golden Gallery en lo alto de la cúpula (528 escalones).", "Postman's Park", "King Edward Street · a 5 min a pie de St Paul's · pequeño jardín victoriano que alberga el Memorial al Heroísmo Ordinario: un muro de placas de cerámica que cuentan cada una la historia de un londinense anónimo muerto salvando la vida de otro · conmovedor y poco conocido. <b>🕒 Acceso libre, abierto todos los días (jardín público).</b> Gratis.", "Old Operating Theatre Museum", "9a St Thomas Street, justo al lado de Borough Market · ~15 min a pie desde Postman's Park · el teatro de operaciones quirúrgico más antiguo de Europa que aún se conserva (1822), redescubierto por casualidad en 1956 en el desván de una iglesia · instrumentos quirúrgicos de época, previos a la anestesia y los antisépticos · se accede por una estrecha escalera de caracol. <b>🕒 Abierto jue-dom 10:30h-17h (última entrada 16:15h)</b> — abierto el viernes, día de la visita. De pago (unas pocas libras), ~40 min.", "Tate Boat — Bankside Pier → Millbank Pier", "Lanzadera fluvial directa entre las dos Tate · ~18 min por el Támesis · vistas del Big Ben, el London Eye y el Parlamento · billete combinado posible con la entrada a Tate Britain.", "Tate Britain", "Arte británico desde el siglo XVI hasta hoy · Turner, Hockney · a orillas del Támesis en Millbank. <b>🕒 Abierto 10h-18h (última entrada 17:30h).</b> Visita ajustada a ~1h30. <b>Historia:</b> inaugurada en 1897 gracias a la financiación del magnate del azúcar Henry Tate (que también dio nombre al azúcar Tate & Lyle), en el emplazamiento de una antigua prisión (Millbank Penitentiary). <b>Imprescindible:</b> las salas Turner (la mayor colección del mundo del artista, legada por él mismo), los prerrafaelitas (Millais, Rossetti), Ofelia de Millais, y obras de Francis Bacon y David Hockney en las galerías de arte británico moderno.", "Westminster y el Big Ben", "15 min a pie desde Tate Britain a lo largo del Támesis, vía Victoria Tower Gardens · Houses of Parliament, Big Ben, Westminster Abbey. <b>Historia:</b> el actual Palacio de Westminster data de 1840-1870 (reconstruido tras un incendio), en un emplazamiento usado como residencia real y sede del poder desde el siglo XI. El \"Big Ben\" es en realidad el nombre de la campana (13,7 toneladas), no de la torre en sí (oficialmente Elizabeth Tower desde 2012). Westminster Abbey ha acogido todas las coronaciones reales desde 1066. <b>Por qué ir:</b> el corazón institucional del Reino Unido, arquitectura neogótica espectacular, aún más impresionante al anochecer cuando las torres se iluminan.", "Metro hacia Tower Hill", "Línea District/Circle, directa desde Westminster · ~20-25 min · de camino de vuelta al hotel.", "Tower of London (exterior)", "Simple paseo frente a la fortaleza, sin visita de pago · vistas del foso y las torres desde fuera · combinar con Tower Bridge justo al lado. <b>Historia:</b> fundada por Guillermo el Conquistador en 1078 (la Torre Blanca central), sirvió sucesivamente como palacio real, prisión (Ana Bolena fue ejecutada aquí en 1536), arsenal, y hoy alberga las Joyas de la Corona. Los cuervos que viven allí están protegidos por la leyenda: si los cuervos abandonan la Torre, caerá la Corona. <b>Por qué verla aunque sea desde fuera:</b> casi 1000 años de historia concentrados en un solo lugar, silueta inmediatamente reconocible a orillas del Támesis.", "Tower Bridge", "Cruce a pie del puente levadizo más fotografiado de Londres · agradable luz de tarde. <b>Historia:</b> construido entre 1886 y 1894 para descongestionar el tráfico sin dejar de permitir el acceso de grandes barcos al puerto de Londres — de ahí su mecanismo basculante, aún funcional hoy (los dos tramos todavía se levantan para dejar pasar grandes barcos, varias veces por semana). A menudo confundido erróneamente con \"London Bridge\" por los turistas. <b>Por qué ir:</b> uno de los puentes más reconocibles del mundo, arquitectura gótica victoriana, pasarela elevada con suelo de cristal (de pago) con vistas a vuelo de pájaro sobre el Támesis.", "London Bridge", "15 min a pie desde Tower Bridge · vistas de The Shard · después vuelta a pie o en metro hasta Brick Lane (~15-20 min). <b>Historia:</b> el puente actual data de 1973 (el anterior, del siglo XIX, se vendió y reconstruyó piedra a piedra en Arizona, EE.UU., en 1968 — una persistente leyenda urbana dice que el comprador estadounidense creyó estar comprando Tower Bridge por error). Existe un puente en este lugar desde época romana. <b>Por qué ir:</b> menos espectacular que Tower Bridge pero estratégico por la vista de The Shard y la City iluminándose al anochecer.", "Leadenhall Market", "~10-12 min a pie desde London Bridge, en la City · mercado cubierto victoriano, tejado de hierro y cristal ornamentado en verde y granate, adoquinado original. <b>Por qué ir:</b> aquí se rodó el pasaje hacia el Callejón Diagon en las películas de Harry Potter (la entrada al Caldero Chorreante se filmó en la entrada de Bull's Head Passage) · uno de los mejores ejemplos de arquitectura comercial victoriana todavía en uso en Londres, con restos romanos bajo los cimientos (el antiguo foro de Londinium). <b>⚠️ Impacto en el horario:</b> desvío opcional de ~20-25 min antes de ir al Viktor Wynd Museum (alarga el trayecto hacia Hackney) · solo merece la pena si hay ganas, si no ir directo a Hackney. <b>🕒 Acceso libre, más animado entre semana en horario de oficina</b> (más tranquilo por la noche, pero la arquitectura sigue siendo visible).", "Viktor Wynd Museum of Curiosities", "11 Mare Street, Hackney · ~30-35 min de trayecto desde London Bridge (autobús o metro con transbordo) · excéntrico gabinete de curiosidades: taxidermia, cabezas reducidas, arte surrealista y ocultista, además de un bar de cócteles en el piso de arriba · ambiente decadente al estilo Wunderkammer victoriano, para los simplemente curiosos. <b>🕒 Abierto mar-vie 15h-23h · sáb 12h-23h · dom 12h-22h · Entrada £12</b> (entrada con horario requerida) · posibilidad de acabar la noche en el bar del local. <b>🎟️ Franjas de reserva viernes:</b> 18:00h, 18:45h, 19:30h o 20:15h.", "Cena cerca del hotel", "De vuelta en Shoreditch tras la visita al museo · Smokestak, Dishoom o Poppies Fish & Chips.", "Notting Hill, Freud Museum y Camden", "Portobello Road, la casa de Sigmund Freud, un mercado alternativo y un pub legendario", "Tube to Notting Hill", "Desde el hotel (Brick Lane): caminar ~10 min hasta <b>Liverpool Street</b>, luego coger la <b>línea Central</b> dirección oeste hasta <b>Notting Hill Gate</b> (10 paradas: Bank, St Paul's, Chancery Lane, Holborn, Tottenham Court Road, Oxford Circus, Bond Street, Marble Arch, Lancaster Gate, Queensway, Notting Hill Gate) · ~25-30 min de trayecto, sin transbordo.", "Cheeky Scone", "43 Pembridge Road, W11 3HG · a 2-3 min a pie de Notting Hill Gate · tienda dedicada por completo a los scones, en todas sus variantes (natural, limón-arándanos, chocolate, queso...) con mermelada y nata cuajada. <b>🕒 Abierto los sábados 10h-17:30h.</b> Colas frecuentes los sábados por la mañana, mejor ir temprano.", "Portobello Road Market", "El mercado de antigüedades/rastro más conocido de Londres, en su mejor momento y más animado los sábados (el día ideal) · casas de colores pastel típicas del barrio, hecho famoso por la película del mismo nombre.", "Metro hacia Hampstead", "Línea Central y después cambio (línea Jubilee o autobús) hacia Finchley Road/Swiss Cottage · ~30-35 min.", "Freud Museum", "20 Maresfield Gardens, Hampstead · antigua casa de Sigmund Freud, con su despacho y su famoso diván conservados · museo pequeño e íntimo. <b>🕒 Abierto 10:30h-17h los sábados.</b>", "Metro hacia Camden", "Sin línea directa de metro desde el Freud Museum · lo más sencillo: <b>autobús 268</b> desde la parada Fitzjohn's Avenue (2 min a pie del museo) hasta <b>Camden Town</b>, ~15-20 min · alternativa en metro: caminar ~10 min hasta <b>Finchley Road</b> (línea Jubilee/Metropolitan), luego línea Jubilee hasta Baker Street, luego línea Northern hasta <b>Camden Town</b> (1 transbordo) · ~25 min en total.", "Camden Market", "Puestos, moda alternativa, ambiente único · para recorrer sin prisas. <b>🕒 Abierto los 7 días, 10h-18h.</b>", "The Hawley Arms", "2 Castlehaven Road · pub legendario frecuentado por Amy Winehouse en los años 2000 · una visita rápida o una copa para los amantes de la música.", "Camden Lock", "A orillas del Regent's Canal · street food internacional · una comida tardía/tentempié para cerrar el día.", "V&amp;A y vuelo de vuelta a las 17:40h", "Diseño y artes decorativas, parada en el Natural History Museum, Science Museum opcional · Tower Bridge, Tower of London y London Bridge ya vistos el jueves", "Vuelo de vuelta — Ricardo, Alexia y Chantal", "Tube to South Kensington", "Desde el hotel (Brick Lane): caminar ~10 min hasta <b>Liverpool Street</b>, luego coger la <b>línea Circle</b> hasta <b>South Kensington</b> · ~30-35 min de trayecto, sin transbordo (línea directa, da la vuelta por Westminster y Victoria) · el V&A está justo a la salida del metro (acceso directo por el túnel peatonal subterráneo desde la estación).", "Victoria and Albert Museum", "Diseño, moda y artes decorativas · barrio de South Kensington · uno de los mayores museos de artes decorativas del mundo · entrada gratuita a la colección permanente. <b>🕒 Abierto 10h-17:45h.</b> Visita de aproximadamente 2h, sin prisas. <b>Historia:</b> fundado en 1852 como South Kensington Museum, financiado con los beneficios de la Gran Exposición de 1851; renombrado en 1899 en honor a la reina Victoria y el príncipe Alberto, que colocaron la primera piedra del edificio actual. <b>Imprescindible:</b> la Great Bed of Ware (cama renacentista monumental mencionada por Shakespeare), los Cast Courts (moldes a tamaño real de la Columna de Trajano y el David de Miguel Ángel), la colección de moda y vestuario, y las joyas de la galería Jewellery.", "Natural History Museum — solo por el edificio", "A 2 min a pie del V&A · no hace falta la visita completa (dinosaurios/ballena azul ya vistos a fondo en el AMNH de Nueva York, aquí más pequeño y algo redundante) · en cambio el <b>Hintze Hall</b> merece la parada por sí solo: arquitectura neorrománica espectacular, casi una catedral · 10-15 min bastan para admirarlo y seguir, de paso rápido. <b>🕒 Abierto todos los días 10h-17:50h (última entrada 17:30h).</b> Gratis. <b>Historia:</b> surgido de las colecciones de historia natural del British Museum, separado como museo independiente en 1881 en este edificio diseñado por Alfred Waterhouse, financiado gracias a las colecciones legadas por el naturalista Hans Sloane. <b>Imprescindible incluso en una visita rápida:</b> \"Hope\", el esqueleto de ballena azul colgado del techo del Hintze Hall (sustituyó al famoso \"Dippy\" el diplodocus en 2017), y los detalles esculpidos de animales y plantas en cada columna y arco del hall, típicos del estilo neorrománico victoriano.", "Science Museum (optional)", "Justo enfrente del Natural History Museum · gratis · para un vistazo muy rápido (~15 min): Flight (historia de la aviación), Espacio (módulo Apollo 10), o Mathematics: The Winton Gallery. <b>🕒 Abierto todos los días 10h-18h (última entrada 17:15h).</b> <b>⚠️ Impacto en el horario:</b> retrasa todo lo demás ~15 min y reduce ligeramente el margen antes del vuelo — solo merece la pena si hay muchas ganas, o saltarse Leighton House para compensar. <b>Historia:</b> nacido en 1857 de las colecciones científicas e industriales de la Gran Exposición de 1851 (como el V&A y el Natural History Museum, los tres con el mismo origen), separado del V&A en 1909. <b>Imprescindible si se pasa por allí:</b> el módulo de mando real del Apollo 10 (el único objeto que realmente voló a la Luna y volvió, expuesto tal cual con sus marcas de reentrada), y la máquina de vapor de Newcomen (1712), una de las primeras máquinas de vapor industriales del mundo.", "V&A Café", "En el V&A · Británica (autoservicio, platos calientes, ensaladas, repostería) · ~£15-20/persona · el primer café de museo del mundo (1868).", "Metro hacia Holland Park", "South Kensington → Holland Park o High Street Kensington · ~15-20 min (autobús o metro con transbordo).", "Leighton House", "12 Holland Park Road · antigua casa-estudio del pintor victoriano Frederic, Lord Leighton (1830-1896), la única casa-estudio de artista construida a tal efecto que sigue abierta al público en el Reino Unido · <b>el Arab Hall</b> es el punto culminante: cúpula dorada, azulejos de cerámica islámica de los siglos XVI-XVII, fuente interior. <b>🕒 Abierto mié-lun 10h-17:30h (última entrada 16:30h) · Entrada ~£14</b>. <b>Historia:</b> Leighton mandó construir el Arab Hall entre 1877 y 1881 para albergar su colección de azulejos islámicos traídos de sus viajes por Oriente Medio; su casa dio origen al \"Holland Park Circle\", una colonia de artistas que se instaló en la zona tras él. <b>Imprescindible:</b> el Arab Hall por supuesto, pero también el estudio de pintura de Leighton en el piso de arriba, iluminado por un gran ventanal norte, y obras de Burne-Jones, Millais y Alma-Tadema en la colección permanente.", "Metro hacia Victoria y luego Gatwick Express", "Holland Park/Kensington → Victoria (~20-25 min, línea District) → Gatwick Express (~30 min) · llegada al aeropuerto hacia las 15:05-15:20h, con ~2h20-2h35 de margen antes del embarque del vuelo de las 17:40h (o ~2h40-2h55 si se salta el Science Museum opcional) · cómodo sin equipaje facturado y con el check-in online ya hecho.", "Alojamiento, restaurantes y las etapas de los 4 días", "4 Días en Londres · Tate Modern · Tate Britain · V&amp;A · British Museum · Camden · West End · los puentes"];
+  let currentLang = 'fr';
+  let i18nOriginals = null;
+
+  function initI18n() {
+    const els = document.querySelectorAll('.i18n');
+    i18nOriginals = Array.from(els).map(el => el.innerHTML);
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    const els = document.querySelectorAll('.i18n');
+    els.forEach((el, i) => {
+      if (lang === 'fr') {
+        el.innerHTML = i18nOriginals[i];
+      } else if (lang === 'en') {
+        el.innerHTML = I18N_EN[i] !== undefined ? I18N_EN[i] : i18nOriginals[i];
+      } else if (lang === 'es') {
+        el.innerHTML = I18N_ES[i] !== undefined ? I18N_ES[i] : i18nOriginals[i];
+      }
+    });
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector('.lang-btn[data-lang="' + lang + '"]');
+    if (btn) btn.classList.add('active');
+    document.documentElement.setAttribute('lang', lang);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initI18n();
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+  });
+
+</script>
+
+</body>
+</html>

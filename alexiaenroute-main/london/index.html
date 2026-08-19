@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4 jours à Londres — Alexia en route</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  body{margin:0;background:#fbfcfd;}
+  .bk, .bk *{box-sizing:border-box;}
+  a{color:#143a52;text-decoration:none;}
+  a:hover{color:#1f8f7c;}
+  .leaflet-container{background:#dde7eb;font-family:Archivo,sans-serif;}
+  .leaflet-tile-pane{filter:grayscale(1) contrast(1.05);}   /* B&W basemap only — markers & routes stay in colour */
+  #screen .leg:hover{color:#143a52;}
+  .resto-set{border-top:1px solid #e6edf0;padding:16px 0;}
+  .resto-set summary{list-style:none;cursor:pointer;outline:none;}
+  .resto-set summary::-webkit-details-marker{display:none;}
+  .resto-set .chev{display:inline-block;transition:transform .2s;color:#1f8f7c;}
+  .resto-set[open] .chev{transform:rotate(90deg);}
+  .stop summary{list-style:none;outline:none;}
+  .stop summary::-webkit-details-marker{display:none;}
+  .stop .pm{width:26px;height:26px;border-radius:50%;border:0.5px solid #cddde3;display:flex;align-items:center;justify-content:center;color:#1f8f7c;font:400 16px Archivo,sans-serif;align-self:center;}
+  .stop .pm::after{content:'+';}
+  .stop[open] .pm::after{content:'−';}
+  .stop[open] .pm{border-color:#1f8f7c;}
+  .bk{display:none;}
+
+  /* Responsive: collapse the two-column grids on narrow screens */
+  @media (max-width:860px){
+    .cover-grid{grid-template-columns:1fr !important;}
+    .cover-grid > div:last-child{border-left:none !important;border-top:1px solid #143a52;min-height:280px !important;}
+    .lodging-grid,.day-grid{grid-template-columns:1fr !important;gap:26px !important;}
+  }
+  @media (max-width:700px){
+    .culture-cols{column-count:1 !important;column-width:auto !important;}   /* Point Culture readable on phones */
+    .topbar{padding:12px 16px !important;gap:10px !important;flex-wrap:wrap !important;}
+    .topbar > a{flex:0 0 auto;}
+    .wrap{padding:0 18px !important;}
+  }
+
+  @media print{
+    @page{margin:0;}
+    html,body{background:#fff;}
+    .screen{display:none !important;}
+    .bk{display:block;font-family:Newsreader,Georgia,serif;color:#143a52;}
+    .pg{position:relative;overflow:hidden;break-after:page;page-break-after:always;background:#fff;}
+    .bk.b5 .pg{width:176mm;height:250mm;padding:17mm 15mm 14mm;font-size:9pt;line-height:1.45;}
+    .bk.pp .pg{width:88mm;height:125mm;padding:9mm 8mm 8mm;font-size:6.6pt;line-height:1.38;}
+    .bk .lbl{font-family:Archivo,sans-serif;text-transform:uppercase;}
+    .bk.pp .hero{height:38mm;}
+    .bk.b5 .hero{height:78mm;}
+    .bk.pp .mapbox{height:44mm;}
+    .bk.b5 .mapbox{height:92mm;}
+    .bk.pp .cvimg{height:52mm;}
+    .bk.b5 .cvimg{height:108mm;}
+    img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .pg *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<div class="screen" id="screen" style="background:#fbfcfd;color:#143a52;font-family:Archivo,Helvetica,Arial,sans-serif;"></div>
+<div class="bk b5" id="bk"></div>
+
+<script type="module">
+import { UI, TRIP, RESTO_SETS, DAYS, DAY_COLORS } from './london-data.js';
+
+const state = { lang: 'fr', day: 0, fmt: 'b5', imgs: {}, hero: null, map: null };
+
+/* ---------- helpers ---------- */
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const tr = o => (o && typeof o === 'object' && o[state.lang] !== undefined) ? o[state.lang] : o;
+const bg = (src, fill) => (fill ? '' : 'position:absolute;inset:0;') +
+  'width:100%;height:100%;background:#dde7eb' + (src ? ' url("' + src + '") center/cover no-repeat' : '') +
+  ';filter:grayscale(1) contrast(1.06);';
+const heroStyle = fill => bg(state.hero && state.hero.src ? state.hero.src : '', fill);
+const photoStyle = (key, fill) => { const img = state.imgs[key]; return bg(img && img.src ? img.src : '', fill); };
+const pill = a => 'font-family:Archivo,sans-serif;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;padding:7px 12px;cursor:pointer;border:1px solid ' +
+  (a ? '#143a52' : '#cddde3') + ';background:' + (a ? '#143a52' : 'transparent') + ';color:' + (a ? '#fbfcfd' : '#46606d') + ';';
+const tabBtn = a => 'font-family:Archivo,sans-serif;background:none;border:none;border-bottom:2px solid ' +
+  (a ? '#1f8f7c' : 'transparent') + ';color:' + (a ? '#143a52' : '#6e8794') + ';padding:16px 22px;cursor:pointer;text-transform:uppercase;text-align:left;';
+const HDR = 'font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #143a52;padding-bottom:0.45em;margin-bottom:1.1em;display:flex;justify-content:space-between;';
+const AIRPORT_RE = /a[eé]roport|airport|gatwick|heathrow|\bjfk\b|o'?hare|sea[- ]?tac|newark|laguardia|midway|el prat/i;
+const isAirport = s => /^(vol|flight|vuelo)$/i.test(String(tr(s.kind) || '').trim()) || AIRPORT_RE.test(String(tr(s.name) || ''));
+const pp = h => (h && /[£$€]/.test(h)) ? h + ' pp' : (h || '');   // mark prices as per-person
+// Category → Tabler icon, matched on the stop's kind (works for FR/EN/ES labels).
+function kindIcon(kind) {
+  const k = String(kind || '').toLowerCase();
+  if (/mus[ée]e|galer|museum|museo/.test(k)) return 'ti-building-bank';
+  if (/monument|cath|église|iglesia|landmark|\bsite\b|monumento|palais|palace/.test(k)) return 'ti-building-monument';
+  if (/balade|marche|promenade|walk|paseo/.test(k)) return 'ti-walk';
+  if (/caf[ée]|petit|breakfast|desayuno|coffee/.test(k)) return 'ti-coffee';
+  if (/d[ée]jeuner|d[îi]ner|repas|lunch|dinner|snack|almuerzo|cena|comer/.test(k)) return 'ti-tools-kitchen-2';
+  if (/vol|flight|vuelo|a[ée]roport|airport/.test(k)) return 'ti-plane';
+  if (/bateau|boat|ferry|barco|croisi|navette/.test(k)) return 'ti-sailboat';
+  if (/trajet|transit|m[ée]tro|train|d[ée]part|arriv|salida|llegada|transporte/.test(k)) return 'ti-train';
+  if (/soir[ée]e|spectacle|match|blues|jazz|concert|show|night|noche|partido/.test(k)) return 'ti-music';
+  if (/insolite|curiosit|passage|belv|viewpoint|vue|mirador/.test(k)) return 'ti-star';
+  return 'ti-map-pin';
+}
+// Day-stop marker: coloured disc (day) + category icon + small order badge.
+const stopPin = (color, icon, n) => L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+  html: '<div style="position:relative;width:24px;height:24px;border-radius:50%;background:' + color + ';border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;">' +
+    '<i class="ti ' + icon + '" style="font-size:14px;line-height:1;"></i>' +
+    '<span style="position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:#fbfcfd;color:#143a52;border:1px solid #143a52;font:600 9px Archivo,sans-serif;display:flex;align-items:center;justify-content:center;box-sizing:border-box;">' + n + '</span>' +
+  '</div>' });
+// Selected day stays in colour; the other days fade to grey.
+const MAP_GREY = '#a9b3b7';
+function highlightDay(sel) {
+  (state.mapDays || []).forEach((md, di) => {
+    const on = (sel == null) || di === sel;
+    const col = on ? md.color : MAP_GREY;
+    if (md.line) md.line.setStyle({ color: col, opacity: on ? 0.85 : 0.22, weight: on ? 2.5 : 1.5 });
+    md.markers.forEach(mk => { mk.marker.setIcon(stopPin(col, mk.icon, mk.n)); mk.marker.setOpacity(on ? 1 : 0.5); mk.marker.setZIndexOffset(on ? 600 : 0); });
+  });
+}
+
+/* ---------- static B&W tile map (print) ---------- */
+function tileMap(stops, w, h, tz) {
+  const lat2y = (lat, z) => (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z) * 256;
+  const lng2x = (lng, z) => (lng + 180) / 360 * Math.pow(2, z) * 256;
+  let pts = stops.map((s, i) => ({ lat: s.lat, lng: s.lng, n: i + 1 })).filter(s => s.lat);
+  if (!pts.length) return { tiles: [], dots: [] };
+  const med = arr => arr.slice().sort((a, b) => a - b)[Math.floor(arr.length / 2)];
+  const mLat = med(pts.map(p => p.lat)), mLng = med(pts.map(p => p.lng));
+  const inner = pts.filter(p => Math.abs(p.lat - mLat) < 0.09 && Math.abs(p.lng - mLng) < 0.16);
+  if (inner.length >= 2) pts = inner;
+  let z = tz;
+  const minLat = Math.min(...pts.map(p => p.lat)), maxLat = Math.max(...pts.map(p => p.lat));
+  const minLng = Math.min(...pts.map(p => p.lng)), maxLng = Math.max(...pts.map(p => p.lng));
+  while (z > 8) {
+    const dx = lng2x(maxLng, z) - lng2x(minLng, z), dy = lat2y(minLat, z) - lat2y(maxLat, z);
+    if (dx < w * 0.82 && dy < h * 0.82) break;
+    z--;
+  }
+  const cx = lng2x((minLng + maxLng) / 2, z), cy = lat2y((minLat + maxLat) / 2, z);
+  const originX = cx - w / 2, originY = cy - h / 2;
+  const tiles = [];
+  const tx0 = Math.floor(originX / 256), ty0 = Math.floor(originY / 256);
+  const tx1 = Math.floor((originX + w) / 256), ty1 = Math.floor((originY + h) / 256);
+  for (let ty = ty0; ty <= ty1; ty++) {
+    for (let tx = tx0; tx <= tx1; tx++) {
+      tiles.push({
+        style: 'position:absolute;display:block;width:256px;height:256px;left:' + (tx * 256 - originX) + 'px;top:' + (ty * 256 - originY) + 'px;' +
+          'background:url("https://a.basemaps.cartocdn.com/light_all/' + z + '/' + tx + '/' + ty + '@2x.png") center/256px 256px no-repeat;filter:grayscale(1) contrast(1.05);'
+      });
+    }
+  }
+  const dots = pts.map(p => ({
+    n: p.n,
+    style: 'position:absolute;left:' + (lng2x(p.lng, z) - originX) + 'px;top:' + (lat2y(p.lat, z) - originY) + 'px;transform:translate(-50%,-50%);width:15px;height:15px;border-radius:50%;background:#143a52;color:#fff;font:600 9px Archivo,sans-serif;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;'
+  }));
+  return { tiles, dots };
+}
+
+/* ---------- derive view model from state ---------- */
+function derive() {
+  const ui = UI[state.lang];
+  const isPP = state.fmt === 'pp';
+  const mw = isPP ? 300 : 600, mh = isPP ? 170 : 352;
+  const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out.length ? out : [[]]; };
+
+  // Global ref numbering across all days (stable, shared by screen + booklet).
+  let refN = 0; const refOf = new Map();
+  DAYS.forEach(day => day.stops.forEach(s => { if (s.note) { refN++; refOf.set(s, String(refN).padStart(2, '0')); } }));
+
+  const parseNote = txt => txt.split('\n').map(line => {
+    const mm = line.match(/^([^:]{3,40}?)\s:\s([\s\S]+)$/);
+    return mm ? { label: mm[1], body: mm[2] } : { label: '', body: line };
+  });
+  // Culture notes belonging to a single day, referencing the global numbering.
+  const notesForDay = day => {
+    const out = [];
+    day.stops.forEach(s => {
+      if (s.note) {
+        const ref = refOf.get(s);
+        out.push({ ref, id: 'note-' + ref, stopId: 'stop-' + ref, name: tr(s.name), lat: s.lat, lng: s.lng, parts: parseNote(tr(s.note)) });
+      }
+    });
+    return out;
+  };
+
+  const days = DAYS.map((day, i) => {
+    const m = tileMap(day.stops, mw, mh, 14);
+    const stops = day.stops.map((s, j) => ({ i: j + 1, time: s.time, kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc) }));
+    const notes = notesForDay(day);
+    return {
+      num: 'Jour ' + String(i + 1).padStart(2, '0'),
+      date: tr(day.date), title: tr(day.title), lede: tr(day.lede), photoCap: tr(day.photoCap), photo: day.photo,
+      stops,
+      stopPages: chunk(stops, isPP ? 6 : 12).map((g, gi) => ({ cont: gi > 0 ? '(suite)' : '', stops: g })),
+      notes,
+      culturePages: notes.length ? chunk(notes, isPP ? 2 : 5).map((g, gi) => ({ cont: gi > 0 ? '(suite)' : '', notes: g })) : [],
+      tiles: m.tiles, dots: m.dots
+    };
+  });
+
+  const cur = DAYS[state.day];
+  const curStops = cur.stops.map((s, i) => ({
+    n: i + 1, time: s.time, tag: s.tag || '', kind: tr(s.kind), name: tr(s.name), desc: tr(s.desc), lat: s.lat, lng: s.lng,
+    parts: s.note ? parseNote(tr(s.note)) : null
+  }));
+
+  const restosAll = RESTO_SETS.map(r => ({ title: tr(r.title), note: tr(r.note), day: (r.day == null ? -1 : r.day), always: !!r.always, items: r.items.map(it => ({ n: it.n, a: it.a, h: it.h, d: tr(it.d) })) }));
+
+  return {
+    ui, isPP,
+    dayColor: DAY_COLORS[state.day % DAY_COLORS.length],
+    trip: { title: tr(TRIP.title), sub: tr(TRIP.sub), dates: tr(TRIP.dates) },
+    stats: TRIP.stats.map(s => ({ n: s.n, l: tr(s.l) })),
+    lodging: { title: tr(TRIP.lodging.title), address: TRIP.lodging.address, note: tr(TRIP.lodging.note) },
+    dayTabs: DAYS.map((day, i) => ({ num: String(i + 1).padStart(2, '0'), date: tr(day.date), short: tr(day.title), active: i === state.day })),
+    day: { date: tr(cur.date), title: tr(cur.title), lede: tr(cur.lede), options: cur.options ? tr(cur.options) : '', photoCap: tr(cur.photoCap), photo: cur.photo, stops: curStops, notes: notesForDay(cur) },
+    days,
+    restos: restosAll,                                      // booklet: every set
+    dayRestos: restosAll.filter(r => r.always || r.day === state.day),  // screen: near-hotel set always + current day
+    legend: DAYS.map((day, i) => ({ label: tr(day.date), color: DAY_COLORS[i], i })),
+    notePages: [1, 2].map(n => ({ n: String(n).padStart(2, '0'), lines: Array.from({ length: isPP ? 15 : 24 }) }))
+  };
+}
+
+/* ---------- screen fragments ---------- */
+function tabsInner(D) {
+  return D.dayTabs.map((d, i) => (
+    '<button data-act="day" data-val="' + i + '" style="' + tabBtn(d.active) + '">' +
+      '<span style="display:block;font-size:9px;letter-spacing:0.16em;margin-bottom:4px;">' + d.num + '</span>' +
+      '<span style="display:block;font-size:8.5px;letter-spacing:0.04em;text-transform:none;color:#1f8f7c;margin-bottom:4px;white-space:nowrap;">' + esc(d.date) + '</span>' +
+      '<span style="display:block;font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;letter-spacing:0;text-transform:none;white-space:nowrap;">' + esc(d.short) + '</span>' +
+    '</button>'
+  )).join('');
+}
+
+function panelInner(D) {
+  const rowGrid = 'display:grid;grid-template-columns:64px minmax(0,1fr) 28px;gap:20px;padding:20px 0;align-items:start;';
+  const timeCol = st => '<div><div style="font-size:12px;font-weight:600;letter-spacing:0.02em;">' + esc(st.time) + '</div>' +
+    (st.tag ? '<div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#1f8f7c;margin-top:5px;">' + esc(st.tag) + '</div>' : '') + '</div>';
+  const head = st => '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">' +
+      '<span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:' + D.dayColor + ';color:#fff;display:inline-flex;align-items:center;justify-content:center;font:600 11px Archivo,sans-serif;align-self:center;">' + st.n + '</span>' +
+      '<h4 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:20px;margin:0;">' + esc(st.name) + '</h4>' +
+      '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#6e8794;">' + esc(st.kind) + '</span>' +
+      (st.lat && st.lng ? '<span data-act="locate" data-lat="' + st.lat + '" data-lng="' + st.lng + '" style="cursor:pointer;font-size:9.5px;letter-spacing:0.1em;color:#1f8f7c;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
+    '</div>';
+  const descP = st => '<p style="font-size:13px;line-height:1.75;color:#46606d;margin:7px 0 0;max-width:62ch;text-wrap:pretty;">' + esc(st.desc) + '</p>';
+  const noteBody = st => '<div style="padding:2px 0 16px 84px;">' +
+    st.parts.map(p => '<p style="font-size:12.5px;line-height:1.7;color:#46606d;margin:8px 0 0;text-wrap:pretty;">' +
+      (p.label ? '<span style="font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#143a52;margin-right:7px;">' + esc(p.label) + '</span>' : '') +
+      esc(p.body) + '</p>').join('') + '</div>';
+  const stopRow = st => st.parts
+    ? '<details class="stop" style="border-top:1px solid #e6edf0;">' +
+        '<summary style="' + rowGrid + 'cursor:pointer;">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span class="pm"></span></summary>' +
+        noteBody(st) +
+      '</details>'
+    : '<div style="border-top:1px solid #e6edf0;"><div style="' + rowGrid + '">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span></span></div></div>';
+
+  return (
+    '<div>' +
+      '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#1f8f7c;margin-bottom:12px;">' + esc(D.day.date) + '</div>' +
+      '<div style="position:relative;padding-top:118%;background:#dde7eb;overflow:hidden;">' +
+        '<div data-photo="' + esc(D.day.photo) + '" style="' + photoStyle(D.day.photo, false) + '"></div>' +
+      '</div>' +
+      '<div style="margin-top:9px;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#6e8794;">' + esc(D.day.photoCap) + '</div>' +
+    '</div>' +
+    '<div>' +
+      '<h2 style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:clamp(34px,4vw,54px);line-height:1.02;letter-spacing:-0.015em;margin:0 0 16px;">' + esc(D.day.title) + '</h2>' +
+      '<p style="font-size:14px;line-height:1.8;color:#46606d;margin:0 0 34px;max-width:52ch;text-wrap:pretty;">' + esc(D.day.lede) + '</p>' +
+      (D.day.options ? '<p style="font-size:12px;line-height:1.7;color:#46606d;border-top:1px solid #cddde3;border-bottom:1px solid #cddde3;padding:12px 0;margin:0 0 34px;">' + esc(D.day.options) + '</p>' : '') +
+      D.day.stops.map(stopRow).join('') +
+    '</div>'
+  );
+}
+
+function cultureInner(D) {
+  return '';   // Point Culture now folds into each itinerary stop (see panelInner); no separate section on screen
+  // eslint-disable-next-line no-unreachable
+  return (
+    '<div style="padding:70px 0 90px;margin-top:60px;border-top:1px solid #143a52;">' +
+      '<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:30px;">' +
+        '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.appendix) + '</span>' +
+        '<span style="flex:1;height:1px;background:#cddde3;"></span>' +
+        '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#6e8794;">' + esc(D.day.date) + '</span>' +
+      '</div>' +
+      '<div class="culture-cols" style="columns:2;column-gap:56px;">' +
+        D.day.notes.map(n => '<div id="' + n.id + '" style="break-inside:avoid;margin-bottom:20px;scroll-margin-top:120px;">' +
+          '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px;">' +
+            '<a href="#' + n.stopId + '" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#1f8f7c;">' + n.ref + ' — ' + esc(n.name) + ' <span style="color:#6e8794;">↩</span></a>' +
+            (n.lat && n.lng ? '<span data-act="locate" data-lat="' + n.lat + '" data-lng="' + n.lng + '" style="cursor:pointer;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#1f8f7c;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
+          '</div>' +
+          n.parts.map(p => '<p style="font-size:12.5px;line-height:1.7;color:#46606d;margin:0 0 5px;text-wrap:pretty;">' +
+            (p.label ? '<span style="font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#143a52;margin-right:7px;">' + esc(p.label) + '</span>' : '') +
+            esc(p.body) + '</p>').join('') +
+        '</div>').join('') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function tablesInner(D) {
+  // Day-filtered: the near-hotel set is always shown; the rest follow the selected day.
+  if (!D.dayRestos.length) return '';
+  return (
+    '<div style="padding:60px 0 0;border-top:1px solid #143a52;margin-top:50px;">' +
+      '<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:34px;">' +
+        '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.tables) + '</span>' +
+        '<span style="flex:1;height:1px;background:#cddde3;"></span>' +
+        '<span style="font-family:Newsreader,Georgia,serif;font-style:italic;font-size:15px;color:#6e8794;">' + esc(D.day.date) + '</span>' +
+      '</div>' +
+      D.dayRestos.map(r =>
+        '<details class="resto-set">' +
+          '<summary style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">' +
+            '<span class="chev" style="font-size:15px;">›</span>' +
+            '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:22px;margin:0;">' + esc(r.title) + '</h3>' +
+            (r.note ? '<span style="font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#6e8794;">' + esc(r.note) + '</span>' : '') +
+            '<span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#1f8f7c;">' + r.items.length + '</span>' +
+          '</summary>' +
+          '<div style="margin-top:8px;">' +
+            r.items.map(it => '<div style="padding:11px 0;border-top:1px solid #e6edf0;">' +
+              '<div style="display:flex;justify-content:space-between;gap:14px;align-items:baseline;">' +
+                '<span style="font-size:13px;font-weight:600;">' + esc(it.n) + '</span>' +
+                '<span style="font-size:10px;color:#6e8794;white-space:nowrap;">' + esc(pp(it.h)) + '</span>' +
+              '</div>' +
+              (it.a ? '<div style="font-size:11.5px;color:#6e8794;margin-top:3px;">' + esc(it.a) + '</div>' : '') +
+              '<div style="font-size:12.5px;color:#46606d;line-height:1.6;margin-top:3px;">' + esc(it.d) + '</div>' +
+            '</div>').join('') +
+          '</div>' +
+        '</details>').join('') +
+    '</div>'
+  );
+}
+
+function renderScreen() {
+  const D = derive();
+  const screen = document.getElementById('screen');
+  screen.innerHTML =
+    /* sticky bar */
+    '<div class="topbar" style="position:sticky;top:0;z-index:30;background:#fbfcfd;border-bottom:1px solid #143a52;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 32px;">' +
+      '<a href="../index.html" style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;">← Alexia en route</a>' +
+      '<div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:flex-end;">' +
+        '<div style="display:flex;gap:2px;">' +
+          '<button data-act="lang" data-val="fr" style="' + pill(state.lang === 'fr') + '">FR</button>' +
+          '<button data-act="lang" data-val="en" style="' + pill(state.lang === 'en') + '">EN</button>' +
+          '<button data-act="lang" data-val="es" style="' + pill(state.lang === 'es') + '">ES</button>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;border-left:1px solid #cddde3;padding-left:22px;">' +
+          '<span style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#6e8794;">' + esc(D.ui.format) + '</span>' +
+          '<button data-act="fmt" data-val="b5" style="' + pill(state.fmt === 'b5') + '">B5</button>' +
+          '<button data-act="fmt" data-val="pp" style="' + pill(state.fmt === 'pp') + '">Passport</button>' +
+          '<button data-act="print" style="font-family:Archivo,sans-serif;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;background:#143a52;color:#fbfcfd;border:1px solid #143a52;padding:7px 14px;cursor:pointer;">' + esc(D.ui.print) + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    /* cover */
+    '<div class="cover-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-bottom:1px solid #143a52;">' +
+      '<div style="padding:78px 46px 54px;display:flex;flex-direction:column;justify-content:space-between;">' +
+        '<div>' +
+          '<div style="font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#1f8f7c;margin-bottom:30px;">' + esc(D.ui.eyebrow) + '</div>' +
+          '<h1 style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:clamp(44px,5.6vw,88px);line-height:0.98;letter-spacing:-0.02em;margin:0 0 24px;">' + esc(D.trip.title) + '</h1>' +
+          '<p style="font-size:13.5px;line-height:1.8;color:#46606d;max-width:46ch;margin:0;text-wrap:pretty;">' + esc(D.trip.sub) + '</p>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:34px;margin-top:52px;padding-top:26px;border-top:1px solid #cddde3;">' +
+          D.stats.map(s => '<div>' +
+            '<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:34px;line-height:1;">' + esc(s.n) + '</div>' +
+            '<div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#6e8794;margin-top:6px;">' + esc(s.l) + '</div>' +
+          '</div>').join('') +
+        '</div>' +
+      '</div>' +
+      '<div style="position:relative;border-left:1px solid #143a52;min-height:440px;background:#dde7eb;">' +
+        '<div data-hero style="' + heroStyle(false) + '"></div>' +
+        '<div style="position:absolute;left:0;bottom:0;background:#fbfcfd;padding:9px 16px;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#6e8794;">' + esc(D.trip.dates) + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="wrap" style="max-width:1180px;margin:0 auto;padding:0 46px;">' +
+
+      /* lodging */
+      '<div class="lodging-grid" style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:40px;padding:46px 0;border-bottom:1px solid #cddde3;">' +
+        '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.lodging) + '</div>' +
+        '<div>' +
+          '<h3 style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:24px;margin:0 0 10px;">' + esc(D.lodging.title) + '</h3>' +
+          '<p style="margin:0 0 6px;font-size:13px;color:#143a52;">' + esc(D.lodging.address) + '</p>' +
+          '<p style="margin:0;font-size:13px;line-height:1.75;color:#46606d;max-width:56ch;">' + esc(D.lodging.note) + '</p>' +
+        '</div>' +
+      '</div>' +
+
+      /* day tabs */
+      '<div id="day-tabs" style="display:flex;gap:0;overflow-x:auto;border-bottom:1px solid #143a52;position:sticky;top:53px;background:#fbfcfd;z-index:20;">' + tabsInner(D) + '</div>' +
+
+      /* day panel */
+      '<div id="day-panel" class="day-grid" style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:40px;padding:52px 0 18px;">' + panelInner(D) + '</div>' +
+
+      /* Point Culture (filtered to the selected day; re-rendered on day change) */
+      '<div id="culture">' + cultureInner(D) + '</div>' +
+
+      /* À table (filtered to the selected day; re-rendered on day change) */
+      '<div id="tables">' + tablesInner(D) + '</div>' +
+
+      /* Carte */
+      '<div style="padding:70px 0 0;margin-top:60px;border-top:1px solid #143a52;">' +
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap;">' +
+          '<span style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;font-weight:600;">' + esc(D.ui.map) + '</span>' +
+          '<span style="flex:1;height:1px;background:#cddde3;min-width:20px;"></span>' +
+          '<button data-act="reset" style="' + pill(false) + '">Londres</button>' +
+        '</div>' +
+        '<div id="map" style="height:520px;border:1px solid #143a52;"></div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:20px;margin-top:12px;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6e8794;">' +
+          D.legend.map(l => '<span data-act="focus" data-val="' + l.i + '" class="leg" style="display:flex;align-items:center;gap:7px;cursor:pointer;"><i style="width:11px;height:11px;border-radius:50%;background:' + l.color + ';display:inline-block;"></i>' + esc(l.label) + '</span>').join('') +
+        '</div>' +
+      '</div>' +
+
+    '</div>';
+
+  initMap();
+  applyImages();
+}
+
+function renderDayRegion() {
+  const D = derive();
+  document.getElementById('day-tabs').innerHTML = tabsInner(D);
+  document.getElementById('day-panel').innerHTML = panelInner(D);
+  document.getElementById('culture').innerHTML = cultureInner(D);
+  document.getElementById('tables').innerHTML = tablesInner(D);
+  if (state.map) highlightDay(state.day);
+  applyImages();
+}
+
+/* ---------- booklet ---------- */
+function renderBooklet() {
+  const D = derive();
+  const bk = document.getElementById('bk');
+  bk.className = 'bk ' + state.fmt;
+
+  let html = '';
+
+  /* cover */
+  html +=
+    '<div class="pg" style="display:flex;flex-direction:column;justify-content:space-between;text-align:center;">' +
+      '<div><div class="lbl" style="font-size:0.72em;letter-spacing:0.3em;">Alexia en route</div>' +
+        '<div style="height:1px;background:#143a52;margin:0.9em 0 0;"></div></div>' +
+      '<div>' +
+        '<div class="cvimg" style="background:#dde7eb;overflow:hidden;margin-bottom:2em;"><div data-hero style="' + heroStyle(true) + '"></div></div>' +
+        '<h1 style="font-weight:300;font-size:3.2em;line-height:1;margin:0 0 0.5em;letter-spacing:-0.02em;">' + esc(D.trip.title) + '</h1>' +
+        '<div class="lbl" style="font-size:0.78em;letter-spacing:0.22em;color:#46606d;">' + esc(D.trip.dates) + '</div>' +
+      '</div>' +
+      '<div class="lbl" style="font-size:0.7em;letter-spacing:0.18em;color:#6e8794;">Chantal · Ricardo · Alexia</div>' +
+    '</div>';
+
+  /* logement */
+  html +=
+    '<div class="pg">' +
+      '<div class="lbl" style="font-size:0.72em;letter-spacing:0.24em;border-bottom:1px solid #143a52;padding-bottom:0.5em;margin-bottom:1.6em;">' + esc(D.ui.lodging) + '</div>' +
+      '<h2 style="font-weight:400;font-size:1.7em;margin:0 0 0.4em;">' + esc(D.lodging.title) + '</h2>' +
+      '<p style="margin:0 0 0.4em;">' + esc(D.lodging.address) + '</p>' +
+      '<p style="margin:0 0 2em;color:#46606d;">' + esc(D.lodging.note) + '</p>' +
+      '<div class="lbl" style="font-size:0.68em;letter-spacing:0.2em;border-top:1px solid #cddde3;padding-top:0.9em;margin-bottom:1em;">' + esc(D.ui.itinerary) + '</div>' +
+      D.days.map(d => '<div style="display:flex;justify-content:space-between;gap:1em;padding:0.55em 0;border-bottom:1px solid #e6edf0;">' +
+        '<span style="font-style:italic;">' + esc(d.title) + '</span>' +
+        '<span class="lbl" style="font-size:0.7em;letter-spacing:0.1em;color:#6e8794;white-space:nowrap;">' + esc(d.date) + '</span>' +
+      '</div>').join('') +
+    '</div>';
+
+  /* per day: title page + itinerary pages */
+  D.days.forEach(d => {
+    html +=
+      '<div class="pg" style="display:flex;flex-direction:column;">' +
+        '<div class="lbl" style="font-size:0.7em;letter-spacing:0.22em;color:#1f8f7c;">' + d.num + ' — ' + esc(d.date) + '</div>' +
+        '<h2 style="font-weight:300;font-size:2.2em;line-height:1.02;margin:0.4em 0 0.4em;letter-spacing:-0.015em;">' + esc(d.title) + '</h2>' +
+        '<p style="margin:0 0 1.2em;color:#46606d;">' + esc(d.lede) + '</p>' +
+        '<div class="hero" style="background:#dde7eb;overflow:hidden;"><div data-photo="' + esc(d.photo) + '" style="' + photoStyle(d.photo, true) + '"></div></div>' +
+        '<div class="lbl" style="font-size:0.62em;letter-spacing:0.14em;color:#6e8794;margin-top:0.5em;">' + esc(d.photoCap) + '</div>' +
+      '</div>';
+    d.stopPages.forEach(sp => {
+      html +=
+        '<div class="pg">' +
+          '<div class="lbl" style="' + HDR + '"><span>' + d.num + ' ' + sp.cont + '</span><span>' + esc(d.date) + '</span></div>' +
+          sp.stops.map(st => '<div style="display:flex;gap:0.9em;padding:0.5em 0;border-bottom:1px solid #efece4;break-inside:avoid;">' +
+            '<div class="lbl" style="flex:0 0 4.2em;font-size:0.78em;font-weight:600;padding-top:0.15em;">' + esc(st.time) + '</div>' +
+            '<div style="flex:1;">' +
+              '<div style="font-weight:500;">' + esc(st.name) + '<span class="lbl" style="font-size:0.62em;letter-spacing:0.12em;color:#6e8794;margin-left:0.6em;">' + esc(st.kind) + '</span></div>' +
+              '<div style="color:#46606d;">' + esc(st.desc) + '</div>' +
+            '</div>' +
+          '</div>').join('') +
+        '</div>';
+    });
+    /* Point Culture — this day's notes, right after its itinerary */
+    d.culturePages.forEach(cp => {
+      html +=
+        '<div class="pg">' +
+          '<div class="lbl" style="' + HDR + '"><span>' + esc(D.ui.appendix) + ' ' + cp.cont + '</span><span>' + esc(d.date) + '</span></div>' +
+          cp.notes.map(n => '<div style="break-inside:avoid;margin-bottom:0.9em;">' +
+            '<div class="lbl" style="font-size:0.66em;letter-spacing:0.14em;color:#1f8f7c;">' + n.ref + ' — ' + esc(n.name) + '</div>' +
+            n.parts.map(p => '<div style="color:#46606d;margin-top:0.2em;">' +
+              (p.label ? '<span class="lbl" style="font-size:0.66em;letter-spacing:0.12em;color:#143a52;margin-right:0.45em;">' + esc(p.label) + '</span>' : '') +
+              esc(p.body) + '</div>').join('') +
+          '</div>').join('') +
+        '</div>';
+    });
+  });
+
+  /* À table */
+  D.restos.forEach(r => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #143a52;padding-bottom:0.45em;margin-bottom:1.1em;">' + esc(D.ui.tables) + '</div>' +
+        '<h2 style="font-weight:400;font-size:1.7em;margin:0 0 0.25em;">' + esc(r.title) + '</h2>' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.16em;color:#6e8794;margin-bottom:1.4em;">' + esc(r.note) + '</div>' +
+        r.items.map(it => '<div style="padding:0.6em 0;border-top:1px solid #e6edf0;break-inside:avoid;">' +
+          '<div style="display:flex;justify-content:space-between;gap:1em;"><span style="font-weight:500;">' + esc(it.n) + '</span>' +
+          '<span class="lbl" style="font-size:0.7em;color:#6e8794;white-space:nowrap;">' + esc(pp(it.h)) + '</span></div>' +
+          '<div style="color:#6e8794;font-size:0.86em;">' + esc(it.a) + '</div>' +
+          '<div style="color:#46606d;">' + esc(it.d) + '</div>' +
+        '</div>').join('') +
+      '</div>';
+  });
+
+  /* Carte — one page per day */
+  D.days.forEach(d => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="' + HDR + '"><span>' + esc(D.ui.map) + '</span><span>' + d.num + '</span></div>' +
+        '<div class="mapbox" style="position:relative;overflow:hidden;border:1px solid #143a52;background:#eceae4;">' +
+          d.tiles.map(t => '<span style="' + t.style + '"></span>').join('') +
+          d.dots.map(p => '<span style="' + p.style + '">' + p.n + '</span>').join('') +
+        '</div>' +
+        '<div style="margin-top:0.9em;columns:2;column-gap:1.4em;">' +
+          d.stops.map(st => '<div style="font-size:0.82em;color:#46606d;break-inside:avoid;padding:0.1em 0;">' + st.i + '. ' + esc(st.name) + '</div>').join('') +
+        '</div>' +
+      '</div>';
+  });
+
+  /* Notes & repères — blank ruled pages */
+  D.notePages.forEach(np => {
+    html +=
+      '<div class="pg">' +
+        '<div class="lbl" style="font-size:0.66em;letter-spacing:0.2em;border-bottom:1px solid #143a52;padding-bottom:0.45em;margin-bottom:1.4em;display:flex;justify-content:space-between;"><span>' + esc(D.ui.notes) + '</span><span>' + np.n + '</span></div>' +
+        np.lines.map(() => '<div style="border-bottom:1px solid #dde7eb;height:2.1em;"></div>').join('') +
+      '</div>';
+  });
+
+  bk.innerHTML = html;
+  applyImages();
+}
+
+/* ---------- Leaflet map (screen) ---------- */
+function initMap() {
+  if (!window.L) { setTimeout(initMap, 200); return; }
+  const el = document.getElementById('map');
+  if (!el) return;
+  if (state.map) { try { state.map.remove(); } catch (e) {} state.map = null; }
+  const map = L.map(el);
+  state.map = map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', attribution: '&copy; OpenStreetMap · &copy; CARTO' }).addTo(map);
+  const pin = (color, glyph) => L.divIcon({ className: '', iconSize: [18, 18], iconAnchor: [9, 9],
+    html: '<div style="background:' + color + ';color:#fff;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font:600 9px Archivo,sans-serif;">' + glyph + '</div>' });
+  const coords = [];
+  // Lodging: a bold, distinct house marker kept on top of the day pins.
+  const homeIcon = L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+    html: '<svg width="24" height="24" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 1.5px rgba(0,0,0,.35));"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="#143a52"/></svg>' });
+  if (TRIP.lodging && TRIP.lodging.lat) { L.marker([TRIP.lodging.lat, TRIP.lodging.lng], { icon: homeIcon, zIndexOffset: 1000 }).addTo(map).bindPopup(TRIP.lodging.address); coords.push([TRIP.lodging.lat, TRIP.lodging.lng]); }
+  state.mapDays = [];
+  DAYS.forEach((d, di) => {
+    const line = []; const markers = [];
+    d.stops.forEach((s, i) => {
+      if (!(s.lat && s.lng) || isAirport(s)) return;   // no airport marker; keep the route line clean
+      line.push([s.lat, s.lng]);
+      const ic = kindIcon(tr(s.kind));
+      const mk = L.marker([s.lat, s.lng], { icon: stopPin(DAY_COLORS[di], ic, i + 1) }).addTo(map).bindPopup(s.time + ' · ' + tr(s.name));
+      markers.push({ marker: mk, n: i + 1, icon: ic });
+      coords.push([s.lat, s.lng]);
+    });
+    const ln = line.length > 1 ? L.polyline(line, { color: DAY_COLORS[di], weight: 2, opacity: 0.75, dashArray: '4 5' }).addTo(map) : null;
+    state.mapDays.push({ color: DAY_COLORS[di], line: ln, markers });
+  });
+  // Restaurant markers (rust diamonds) — RESTO items that carry coordinates (parity with the USA guide).
+  const restoPin = L.divIcon({ className: '', iconSize: [8, 8], iconAnchor: [4, 4], html: '<div style="width:6px;height:6px;background:#1f8f7c;border:1px solid #fff;transform:rotate(45deg);"></div>' });
+  RESTO_SETS.forEach(r => r.items.forEach(it => { if (it.lat && it.lng) { L.marker([it.lat, it.lng], { icon: restoPin }).addTo(map).bindPopup((it.n || '') + (it.a ? ' · ' + it.a : '')); } }));
+  state.allCoords = coords;
+  if (coords.length) map.fitBounds(coords, { padding: [40, 40], maxZoom: 14 }); else map.setView([51.5145, -0.105], 12);
+  highlightDay(state.day);
+}
+
+/* ---------- photography (placeholders from Wikimedia) ---------- */
+async function wiki(title, w) {
+  try {
+    const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + title);
+    const j = await r.json();
+    const thumb = (j.thumbnail && j.thumbnail.source) || (j.originalimage && j.originalimage.source) || '';
+    if (!thumb) return null;
+    const file = decodeURIComponent(thumb.split('?')[0].split('/').filter(Boolean).pop().replace(/^\d+px-/, ''));
+    return { src: 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(file) + '?width=' + (w || 800), fallback: thumb };
+  } catch (e) { return null; }
+}
+function setFill(el, img) {
+  const probe = new Image();
+  const paint = url => { el.style.background = '#dde7eb url("' + url + '") center/cover no-repeat'; el.style.filter = 'grayscale(1) contrast(1.06)'; };
+  probe.onload = () => paint(img.src);
+  probe.onerror = () => { if (img.fallback) paint(img.fallback); };
+  probe.src = img.src;
+}
+function applyImages() {
+  if (state.hero && state.hero.src) document.querySelectorAll('[data-hero]').forEach(el => setFill(el, state.hero));
+  document.querySelectorAll('[data-photo]').forEach(el => {
+    const img = state.imgs[el.getAttribute('data-photo')];
+    if (img && img.src) setFill(el, img);
+  });
+}
+async function loadImages() {
+  state.hero = await wiki('Tower_Bridge', 1200);
+  applyImages();
+  for (const d of DAYS) {
+    const img = await wiki(d.photo);
+    if (img) { state.imgs[d.photo] = img; applyImages(); }
+  }
+}
+
+/* ---------- print ---------- */
+function doPrint() {
+  const size = state.fmt === 'pp' ? '88mm 125mm' : '176mm 250mm';
+  let s = document.getElementById('bk-page-size');
+  if (!s) { s = document.createElement('style'); s.id = 'bk-page-size'; document.head.appendChild(s); }
+  s.textContent = '@media print{@page{size:' + size + ';margin:0;}}';
+  window.print();
+}
+
+/* ---------- events ---------- */
+document.getElementById('screen').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, val = b.dataset.val;
+  if (act === 'lang') {
+    if (state.lang === val) return;
+    state.lang = val;
+    document.documentElement.lang = val;
+    renderScreen();
+    renderBooklet();
+  } else if (act === 'fmt') {
+    if (state.fmt === val) return;
+    state.fmt = val;
+    renderScreen();   // refresh the format pills in the bar
+    renderBooklet();  // re-chunk pagination for the new geometry
+  } else if (act === 'day') {
+    const n = +val;
+    if (state.day === n) return;
+    state.day = n;
+    renderDayRegion();
+  } else if (act === 'focus') {
+    // Legend click: select that day (panel + colour highlight, greys the rest) and zoom to it.
+    const di = +val;
+    state.day = di;
+    renderDayRegion();
+    const pts = DAYS[di].stops.filter(s => s.lat && s.lng && !isAirport(s)).map(s => [s.lat, s.lng]);
+    if (state.map && pts.length) {
+      if (pts.length === 1) state.map.setView(pts[0], 15);
+      else state.map.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } else if (act === 'locate') {
+    // "carte ↗": pinpoint that stop on the map (don't toggle the row it sits in).
+    e.preventDefault(); e.stopPropagation();
+    const lat = +b.dataset.lat, lng = +b.dataset.lng;
+    if (state.map && lat && lng) {
+      state.map.setView([lat, lng], 16);
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } else if (act === 'reset') {
+    // "Londres" button: restore every itinerary to full colour and frame the whole trip.
+    highlightDay(null);
+    if (state.map && state.allCoords && state.allCoords.length) state.map.fitBounds(state.allCoords, { padding: [40, 40], maxZoom: 14 });
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (act === 'print') {
+    doPrint();
+  }
+});
+
+/* ---------- boot ---------- */
+renderScreen();
+renderBooklet();
+loadImages();
+</script>
+</body>
+</html>
