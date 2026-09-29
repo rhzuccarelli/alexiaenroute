@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/tabler-icons.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<script src="../vendor/leaflet/leaflet.js"></script>
 <style>
   body{margin:0;background:#fbfcfd;}
   .bk, .bk *{box-sizing:border-box;}
@@ -42,7 +42,21 @@
     .topbar{padding:12px 16px !important;gap:10px !important;flex-wrap:wrap !important;}
     .topbar > a{flex:0 0 auto;}
     .wrap{padding:0 18px !important;}
+    .topbar{flex-wrap:nowrap !important;padding:10px 16px !important;}
+    .topbar .fmt-ctl{display:none !important;}   /* printing the booklet is a desktop task */
+    .cover-text{padding:40px 20px 34px !important;}
+    .cover-text h1{margin-bottom:16px !important;}
+    .cover-text .stats{gap:22px !important;margin-top:30px !important;padding-top:20px !important;}
+    .cover-grid > div:last-child{min-height:220px !important;}
+    #day-tabs button{padding:12px 14px !important;}
+    .day-grid{padding-top:28px !important;}
+    .day-photo{padding-top:56% !important;}   /* landscape crop instead of a screen-tall portrait */
+    .stop-row{grid-template-columns:46px minmax(0,1fr) 26px !important;gap:12px !important;padding:16px 0 !important;}
+    .stop-row h4{font-size:18px !important;}
+    .stop-note{padding-left:0 !important;}
+    #map{height:62vh !important;min-height:320px;}
   }
+  .map-msg{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:12px;color:#46606d;}
 
   @media print{
     @page{margin:0;}
@@ -247,21 +261,21 @@ function panelInner(D) {
       (st.lat && st.lng ? '<span data-act="locate" data-lat="' + st.lat + '" data-lng="' + st.lng + '" style="cursor:pointer;font-size:9.5px;letter-spacing:0.1em;color:#1f8f7c;border-bottom:1px solid #d8c9c3;">carte ↗</span>' : '') +
     '</div>';
   const descP = st => '<p style="font-size:13px;line-height:1.75;color:#46606d;margin:7px 0 0;max-width:62ch;text-wrap:pretty;">' + esc(st.desc) + '</p>';
-  const noteBody = st => '<div style="padding:2px 0 16px 84px;">' +
+  const noteBody = st => '<div class="stop-note" style="padding:2px 0 16px 84px;">' +
     st.parts.map(p => '<p style="font-size:12.5px;line-height:1.7;color:#46606d;margin:8px 0 0;text-wrap:pretty;">' +
       (p.label ? '<span style="font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#143a52;margin-right:7px;">' + esc(p.label) + '</span>' : '') +
       esc(p.body) + '</p>').join('') + '</div>';
   const stopRow = st => st.parts
     ? '<details class="stop" style="border-top:1px solid #e6edf0;">' +
-        '<summary style="' + rowGrid + 'cursor:pointer;">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span class="pm"></span></summary>' +
+        '<summary class="stop-row" style="' + rowGrid + 'cursor:pointer;">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span class="pm"></span></summary>' +
         noteBody(st) +
       '</details>'
-    : '<div style="border-top:1px solid #e6edf0;"><div style="' + rowGrid + '">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span></span></div></div>';
+    : '<div style="border-top:1px solid #e6edf0;"><div class="stop-row" style="' + rowGrid + '">' + timeCol(st) + '<div>' + head(st) + descP(st) + '</div><span></span></div></div>';
 
   return (
     '<div>' +
       '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#1f8f7c;margin-bottom:12px;">' + esc(D.day.date) + '</div>' +
-      '<div style="position:relative;padding-top:118%;background:#dde7eb;overflow:hidden;">' +
+      '<div class="day-photo" style="position:relative;padding-top:118%;background:#dde7eb;overflow:hidden;">' +
         '<div data-photo="' + esc(D.day.photo) + '" style="' + photoStyle(D.day.photo, false) + '"></div>' +
       '</div>' +
       '<div style="margin-top:9px;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#6e8794;">' + esc(D.day.photoCap) + '</div>' +
@@ -346,7 +360,7 @@ function renderScreen() {
           '<button data-act="lang" data-val="en" style="' + pill(state.lang === 'en') + '">EN</button>' +
           '<button data-act="lang" data-val="es" style="' + pill(state.lang === 'es') + '">ES</button>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;border-left:1px solid #cddde3;padding-left:22px;">' +
+        '<div class="fmt-ctl" style="display:flex;align-items:center;gap:8px;border-left:1px solid #cddde3;padding-left:22px;">' +
           '<span style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#6e8794;">' + esc(D.ui.format) + '</span>' +
           '<button data-act="fmt" data-val="b5" style="' + pill(state.fmt === 'b5') + '">B5</button>' +
           '<button data-act="fmt" data-val="pp" style="' + pill(state.fmt === 'pp') + '">Passport</button>' +
@@ -357,13 +371,13 @@ function renderScreen() {
 
     /* cover */
     '<div class="cover-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-bottom:1px solid #143a52;">' +
-      '<div style="padding:78px 46px 54px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div class="cover-text" style="padding:78px 46px 54px;display:flex;flex-direction:column;justify-content:space-between;">' +
         '<div>' +
           '<div style="font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#1f8f7c;margin-bottom:30px;">' + esc(D.ui.eyebrow) + '</div>' +
           '<h1 style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:clamp(44px,5.6vw,88px);line-height:0.98;letter-spacing:-0.02em;margin:0 0 24px;">' + esc(D.trip.title) + '</h1>' +
           '<p style="font-size:13.5px;line-height:1.8;color:#46606d;max-width:46ch;margin:0;text-wrap:pretty;">' + esc(D.trip.sub) + '</p>' +
         '</div>' +
-        '<div style="display:flex;flex-wrap:wrap;gap:34px;margin-top:52px;padding-top:26px;border-top:1px solid #cddde3;">' +
+        '<div class="stats" style="display:flex;flex-wrap:wrap;gap:34px;margin-top:52px;padding-top:26px;border-top:1px solid #cddde3;">' +
           D.stats.map(s => '<div>' +
             '<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:34px;line-height:1;">' + esc(s.n) + '</div>' +
             '<div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#6e8794;margin-top:6px;">' + esc(s.l) + '</div>' +
@@ -415,9 +429,16 @@ function renderScreen() {
 
     '</div>';
 
+  syncSticky();
   initMap();
   applyImages();
 }
+
+function syncSticky() {
+  const bar = document.querySelector('.topbar'), tabs = document.getElementById('day-tabs');
+  if (bar && tabs) tabs.style.top = (bar.offsetHeight - 1) + 'px';
+}
+window.addEventListener('resize', syncSticky);
 
 function renderDayRegion() {
   const D = derive();
@@ -548,13 +569,30 @@ function renderBooklet() {
 
 /* ---------- Leaflet map (screen) ---------- */
 function initMap() {
-  if (!window.L) { setTimeout(initMap, 200); return; }
   const el = document.getElementById('map');
   if (!el) return;
+  if (!window.L) {
+    // Leaflet didn't load (offline / blocked): retry for ~10 s, then say so instead of leaving a blank box.
+    initMap.tries = (initMap.tries || 0) + 1;
+    if (initMap.tries < 50) setTimeout(initMap, 200);
+    else el.innerHTML = '<div class="map-msg">Carte indisponible — vérifiez la connexion puis rechargez la page.</div>';
+    return;
+  }
   if (state.map) { try { state.map.remove(); } catch (e) {} state.map = null; }
-  const map = L.map(el);
+  // Wheel-zoom only once the map is clicked, so scrolling the page never gets trapped by it.
+  const map = L.map(el, { scrollWheelZoom: false });
+  map.once('click focus', () => map.scrollWheelZoom.enable());
   state.map = map;
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', attribution: '&copy; OpenStreetMap · &copy; CARTO' }).addTo(map);
+  const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OpenStreetMap · &copy; CARTO' }).addTo(map);
+  // Fallback basemap if CARTO tiles fail to load.
+  let tileErrs = 0;
+  base.on('tileerror', () => {
+    if (++tileErrs !== 4) return;
+    map.removeLayer(base);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  });
+  // Keep Leaflet in sync when the box changes size (fonts loading, rotation, responsive layout).
+  if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(el);
   const pin = (color, glyph) => L.divIcon({ className: '', iconSize: [18, 18], iconAnchor: [9, 9],
     html: '<div style="background:' + color + ';color:#fff;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font:600 9px Archivo,sans-serif;">' + glyph + '</div>' });
   const coords = [];
