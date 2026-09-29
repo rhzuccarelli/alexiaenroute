@@ -214,7 +214,7 @@ function tileMap(stops, w, h, tz) {
     for (let tx = tx0; tx <= tx1; tx++) {
       tiles.push({
         style: 'position:absolute;display:block;width:256px;height:256px;left:' + (tx * 256 - originX) + 'px;top:' + (ty * 256 - originY) + 'px;' +
-          'background:url("https://a.basemaps.cartocdn.com/light_all/' + z + '/' + tx + '/' + ty + '@2x.png") center/256px 256px no-repeat;filter:grayscale(1) contrast(1.05);'
+          'background:url("https://tile.openstreetmap.org/' + z + '/' + tx + '/' + ty + '.png") center/256px 256px no-repeat;filter:grayscale(1) contrast(1.05);'
       });
     }
   }
@@ -673,13 +673,14 @@ function initMap() {
   const map = L.map(el, { scrollWheelZoom: false });
   map.once('click focus', () => map.scrollWheelZoom.enable());
   state.map = map;
-  const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OpenStreetMap · &copy; CARTO' }).addTo(map);
-  // Fallback basemap if CARTO tiles fail to load.
+  // OpenStreetMap tiles (keyless). CARTO's basemaps now return "API KEY REQUIRED" images, so they can't be used.
+  const base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  // Fallback basemap (Esri light grey, also keyless) if OSM tiles fail to load.
   let tileErrs = 0;
   base.on('tileerror', () => {
     if (++tileErrs !== 4) return;
     map.removeLayer(base);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: '&copy; Esri · &copy; OpenStreetMap' }).addTo(map);
   });
   // Keep Leaflet in sync when the box changes size (fonts loading, rotation, responsive layout).
   if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(el);
